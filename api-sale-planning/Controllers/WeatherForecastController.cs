@@ -21,7 +21,7 @@ namespace api_sale_planning.Controllers
         [Route("/saleforecase/{ym}")]
         public IActionResult GetSaleForeCase(int ym)
         {
-            var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym.ToString() && x.Lrev == "999").OrderBy(x=>x.Row).ToList();
+            var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym.ToString() && x.Lrev == "999").OrderBy(x => x.Row).ToList();
             return Ok(content);
         }
         [HttpPost]
@@ -29,21 +29,13 @@ namespace api_sale_planning.Controllers
         public IActionResult SaveSaleForeCase([FromBody] MSaveSaleForecase param)
         {
             int rev = 0;
-            var exist = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.Ym.ToString() && x.Lrev == "999").OrderBy(x => x.Lrev).ToList();
+            var exist = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.Ym.ToString() && x.Lrev == "999").OrderBy(x => x.Id).ToList();
             if (exist.Count > 0)
             {
-                rev = int.Parse(exist.FirstOrDefault().Lrev);
-                //_contextDBSCM.upd
-                //foreach (AlSaleForecaseMonth item in exist)
-                //{
-                //    item.Rev = rev.ToString();
-                //    _contextDBSCM.AlSaleForecaseMonths.Update(item);
-                //    await _contextDBSCM.SaveChangesAsync();
-                //}
-                //var data = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param[0].Ym.ToString() && x.Rev == "999").ToList();
+                rev = int.Parse(exist.FirstOrDefault().Rev);
                 foreach (var item in exist)
                 {
-                    item.Rev = rev.ToString();
+                    item.Lrev = rev.ToString();
                     _contextDBSCM.AlSaleForecaseMonths.Update(item);
                 }
                 _contextDBSCM.SaveChanges();
@@ -54,10 +46,10 @@ namespace api_sale_planning.Controllers
                 itemAdd.CreateBy = row.CreateBy;
                 itemAdd.Customer = row.Customer;
                 itemAdd.Ym = row.Ym;
-                itemAdd.ModelCode =  row.ModelCode;
+                itemAdd.ModelCode = row.ModelCode;
                 itemAdd.ModelName = row.ModelName;
                 itemAdd.Sebango = row.Sebango;
-                itemAdd.Pltype  = row.Pltype;
+                itemAdd.Pltype = row.Pltype;
                 itemAdd.Customer = row.Customer;
                 itemAdd.CreateDate = DateTime.Now;
                 itemAdd.D01 = row.D01;
@@ -91,16 +83,11 @@ namespace api_sale_planning.Controllers
                 itemAdd.D29 = row.D29;
                 itemAdd.D30 = row.D30;
                 itemAdd.D31 = row.D31;
-                itemAdd.Rev = "999";
-                itemAdd.Lrev = (rev + 1).ToString();
+                itemAdd.Rev = (rev + 1).ToString();
+                itemAdd.Lrev = "999";
                 _contextDBSCM.AlSaleForecaseMonths.Add(itemAdd);
             }
-            //var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.Ym && x.ModelCode == param.ModelCode).OrderByDescending(x=>x.Rev).FirstOrDefault();
-            //if (content != null)
-            //{
-            //_contextDBSCM.AlSaleForecaseMonths.Add(param);
             int insert = _contextDBSCM.SaveChanges();
-            //}
             return Ok(new
             {
                 status = insert
@@ -129,6 +116,30 @@ namespace api_sale_planning.Controllers
         {
             var content = _contextDBSCM.AlPalletTypeMappings.ToList();
             return Ok(content);
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/deleteAll")]
+        public IActionResult DeleteAll([FromBody] MDeleteSaleForecast param)
+        {
+            var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.ym).ToList();
+            if (content != null)
+            {
+                _contextDBSCM.AlSaleForecaseMonths.RemoveRange(content);
+                int del = _contextDBSCM.SaveChanges();
+                return Ok(new
+                {
+                    status = del
+                });
+            }
+            else
+            {
+                return Ok(new
+                {
+                    status = 0,
+                    msg = "ไม่พบข้อมูล"
+                });
+            }
         }
     }
 }

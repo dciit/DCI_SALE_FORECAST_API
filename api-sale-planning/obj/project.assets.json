@@ -2441,11 +2441,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\peerapong.k.ITNB17_41256\\source\\repos\\api-sale-planning\\api-sale-planning\\api-sale-planning.csproj",
+      "projectUniqueName": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\api-sale-planning.csproj",
       "projectName": "api-sale-planning",
-      "projectPath": "C:\\Users\\peerapong.k.ITNB17_41256\\source\\repos\\api-sale-planning\\api-sale-planning\\api-sale-planning.csproj",
+      "projectPath": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\api-sale-planning.csproj",
       "packagesPath": "C:\\Users\\peerapong.k.ITNB17_41256\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\peerapong.k.ITNB17_41256\\source\\repos\\api-sale-planning\\api-sale-planning\\obj\\",
+      "outputPath": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
