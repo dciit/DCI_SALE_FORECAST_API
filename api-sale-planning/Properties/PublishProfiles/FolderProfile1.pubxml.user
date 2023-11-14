@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\publish\</_PublishTargetUrl>
+    <History>True|2023-11-14T11:44:32.1201800Z;True|2023-11-14T17:29:02.5458158+07:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>

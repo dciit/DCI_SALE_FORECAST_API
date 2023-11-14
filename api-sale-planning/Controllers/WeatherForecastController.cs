@@ -21,7 +21,7 @@ namespace api_sale_planning.Controllers
         [Route("/saleforecase/{ym}")]
         public IActionResult GetSaleForeCase(int ym)
         {
-            var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym.ToString() && x.Lrev == "999").OrderBy(x => x.Row).ToList();
+            var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym.ToString() && x.Lrev == "999").OrderBy(x => x.Id).ToList();
             return Ok(content);
         }
         [HttpPost]
