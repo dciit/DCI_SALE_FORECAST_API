@@ -24,6 +24,7 @@ namespace api_sale_planning.Controllers
             var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym.ToString() && x.Lrev == "999").OrderBy(x => x.Id).ToList();
             return Ok(content);
         }
+            
         [HttpPost]
         [Route("/saleforecase/save")]
         public IActionResult SaveSaleForeCase([FromBody] MSaveSaleForecase param)
