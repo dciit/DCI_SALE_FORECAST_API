@@ -2441,9 +2441,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\api-sale-planning.csproj",
-      "projectName": "api-sale-planning",
-      "projectPath": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\api-sale-planning.csproj",
+      "projectUniqueName": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\DCI_SALE_FORCAST_API.csproj",
+      "projectName": "DCI_SALE_FORCAST_API",
+      "projectPath": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\DCI_SALE_FORCAST_API.csproj",
       "packagesPath": "C:\\Users\\peerapong.k.ITNB17_41256\\.nuget\\packages\\",
       "outputPath": "D:\\git\\DCI_SALE_FORECAST_API\\api-sale-planning\\obj\\",
       "projectStyle": "PackageReference",
@@ -2515,6 +2515,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.25, 6.0.25]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[6.0.25, 6.0.25]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.25, 6.0.25]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.25, 6.0.25]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -2523,7 +2541,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.404\\RuntimeIdentifierGraph.json"
       }
     }
   }

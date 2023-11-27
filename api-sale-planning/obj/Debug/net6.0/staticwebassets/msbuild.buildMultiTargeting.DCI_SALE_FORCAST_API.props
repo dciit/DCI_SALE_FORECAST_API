@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\DCI_SALE_FORCAST_API.props" />
+</Project>

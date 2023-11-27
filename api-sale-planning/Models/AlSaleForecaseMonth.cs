@@ -7,11 +7,11 @@ namespace api_sale_planning.Models
     {
         public int Id { get; set; }
         public string Ym { get; set; } = null!;
-        public string ModelCode { get; set; } = null!;
-        public string ModelName { get; set; } = null!;
-        public string Sebango { get; set; } = null!;
-        public string Pltype { get; set; } = null!;
-        public string Customer { get; set; } = null!;
+        public string? ModelCode { get; set; }
+        public string? ModelName { get; set; }
+        public string? Sebango { get; set; }
+        public string? Pltype { get; set; }
+        public string? Customer { get; set; }
         public int? D01 { get; set; }
         public int? D02 { get; set; }
         public int? D03 { get; set; }

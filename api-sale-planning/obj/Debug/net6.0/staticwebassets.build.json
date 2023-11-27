@@ -1,8 +1,8 @@
 {
   "Version": 1,
-  "Hash": "40SLtcQwqasatR04Y/VoDfq62im2dGv0WOTjvgai57k=",
-  "Source": "api-sale-planning",
-  "BasePath": "_content/api-sale-planning",
+  "Hash": "6KQcjsxpaIpQkl9aJNrrf1xszK6Za0Ziyk9r4j3KVuU=",
+  "Source": "DCI_SALE_FORCAST_API",
+  "BasePath": "_content/DCI_SALE_FORCAST_API",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
