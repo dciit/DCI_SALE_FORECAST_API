@@ -2,16 +2,24 @@
 {
     public class MParam
     {
-        public int? year {  get; set; }  
+        public int? year { get; set; }
         public int? month { get; set; }
+        public string? ym { get; set; }
+        public string? column { get; set; }
+        public int? val { get; set; }
 
-        public string? column { get; set; } 
-        public int? val { get; set; }   
-
-        public int? id {  get; set; }   
+        public int? id { get; set; }
 
         public AlSaleForecaseMonth? alforecast { get; set; }
-        public List<AlSaleForecaseMonth>? listalforecast { get; set; }   
-        public string? empcode {  get; set; }
+        public List<AlSaleForecaseMonth>? listalforecast { get; set; }
+        public string? empcode { get; set; }
+        public List<List<MExcel>>? data { get; set; }
+
+    }
+
+  
+    public class MExcel
+    {
+        public string? value { get; set; }
     }
 }

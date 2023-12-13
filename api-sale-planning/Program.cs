@@ -8,6 +8,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DBSCM>();
+builder.Services.AddDbContext<DBDCI>();
+builder.Services.AddDbContext<DBHRM>();
+
 builder.Services.AddCors(options => options.AddPolicy("Cors", builder =>
 {
     builder

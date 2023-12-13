@@ -1,9 +1,9 @@
-D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\api-sale-planning.exe
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.exe
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\appsettings.Development.json
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\appsettings.json
-D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\api-sale-planning.dll
-D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\api-sale-planning.runtimeconfig.json
-D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\api-sale-planning.pdb
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.dll
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.runtimeconfig.json
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.pdb
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.Data.SqlClient.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.EntityFrameworkCore.Abstractions.dll
@@ -39,4 +39,4 @@ D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\run
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
-D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\api-sale-planning.deps.json
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.deps.json

@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace api_sale_planning.Models
+﻿namespace api_sale_planning.Models
 {
-    public partial class AlSaleForecaseMonth
+    public class MUpdateSale
     {
-        public int Id { get; set; }
-        public string Ym { get; set; } = null!;
-        public string? ModelCode { get; set; }
-        public string? ModelName { get; set; }
-        public string? Sebango { get; set; }
-        public string? Pltype { get; set; }
-        public string? Customer { get; set; }
-        public int? D01 { get; set; }
+        public string ym { get; set; }
+        public string empcode { get; set; } 
+        public List<MSale> listSale { get; set; }
+    }
+    public class MSale
+    {
+        public string? modelCode { get; set; }
+        public string? customer { get; set; }
+        public string? sebango { get; set; }
+        public string? pltype { get; set; }
+        public int? D01 {  get; set; }
         public int? D02 { get; set; }
         public int? D03 { get; set; }
         public int? D04 { get; set; }
@@ -43,10 +43,5 @@ namespace api_sale_planning.Models
         public int? D29 { get; set; }
         public int? D30 { get; set; }
         public int? D31 { get; set; }
-        public string? Rev { get; set; }
-        public string? Lrev { get; set; }
-        public string? CreateBy { get; set; }
-        public DateTime? CreateDate { get; set; }
-        public int? Row { get; set; }
     }
 }
