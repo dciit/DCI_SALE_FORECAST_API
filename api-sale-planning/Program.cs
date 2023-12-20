@@ -10,7 +10,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DBSCM>();
 builder.Services.AddDbContext<DBDCI>();
 builder.Services.AddDbContext<DBHRM>();
-
+builder.Services.AddDbContext<DBBCS>(); 
 builder.Services.AddCors(options => options.AddPolicy("Cors", builder =>
 {
     builder

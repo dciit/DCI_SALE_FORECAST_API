@@ -8,6 +8,7 @@
     }
     public class MSale
     {
+        public int? id { get; set; } 
         public string? modelCode { get; set; }
         public string? customer { get; set; }
         public string? sebango { get; set; }

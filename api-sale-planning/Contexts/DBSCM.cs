@@ -103,7 +103,7 @@ namespace api_sale_planning.Contexts
 
                 entity.Property(e => e.CreateDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Customer).HasMaxLength(15);
+                entity.Property(e => e.Customer).HasMaxLength(30);
 
                 entity.Property(e => e.D01).HasDefaultValueSql("((0))");
 
@@ -176,14 +176,18 @@ namespace api_sale_planning.Contexts
                 entity.Property(e => e.ModelName).HasMaxLength(50);
 
                 entity.Property(e => e.Pltype)
-                    .HasMaxLength(10)
+                    .HasMaxLength(30)
                     .HasColumnName("PLTYPE");
 
                 entity.Property(e => e.Rev)
                     .HasMaxLength(3)
                     .HasColumnName("REV");
 
-                entity.Property(e => e.Sebango).HasMaxLength(10);
+                entity.Property(e => e.Sebango).HasMaxLength(30);
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Ym)
                     .HasMaxLength(6)
