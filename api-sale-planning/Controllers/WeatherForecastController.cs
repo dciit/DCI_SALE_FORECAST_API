@@ -460,7 +460,8 @@ namespace api_sale_planning.Controllers
                     prev.UpdateDate = DateTime.Now;
                     prev.Ym = ym;
                     prev.Customer = item.customer;
-                    prev.ModelCode = item.modelCode;
+                    prev.ModelCode = item.sebango;
+                    prev.ModelName = item.modelName;
                     prev.Sebango = item.sebango;
                     prev.Pltype = item.pltype;
                     prev.D01 = service.setNumSale(item.D01!);
