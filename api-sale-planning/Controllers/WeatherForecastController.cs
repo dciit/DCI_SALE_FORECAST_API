@@ -350,6 +350,8 @@ namespace api_sale_planning.Controllers
         [Route("/get/sale")]
         public IActionResult GetSale([FromBody] MParam param)
         {
+            List<MFilter> filterCustomer = param.filterCustomer;
+            List<MFilter> filterSBU = param.filterSBU;
             var models = _contextDBSCM.PnCompressors.Where(x => x.ModelCode != "BMC" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMLSTATOR").ToList();
             var customers = _contextDBSCM.AlCustomers.ToList();
             List<AlSaleForecaseMonth> list = new List<AlSaleForecaseMonth>();
@@ -361,11 +363,84 @@ namespace api_sale_planning.Controllers
                 {
                     if (lastRev.Lrev != "999") // ดำเนินการ 1=1 และ 
                     {
-                        list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == lastRev.Rev).OrderBy(x => x.Id).ToList();
+                        list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == lastRev.Rev && (x.Customer != "" && x.ModelCode != "" && x.ModelCode != null && x.ModelName != "" && x.Sebango != "" && x.Pltype != "")).OrderByDescending(x => x.Customer).ThenBy(x => x.Id).ToList();
+                        if (filterCustomer != null && filterCustomer.Count > 0)
+                        {
+                            List<string> strListCustomer = filterCustomer.Select(x => x.value).ToList();
+                            list = list.Where(x => strListCustomer.Contains(x.Customer)).ToList();
+                        }
+                        if (filterSBU != null && filterSBU.Count > 0)
+                        {
+                            List<string> strListSBU = filterSBU.Select(x => x.value!).ToList();
+                            foreach (AlSaleForecaseMonth iData in list.ToList())
+                            {
+                                string modelName = iData.ModelName!;
+                                bool match = false;
+                                foreach (string itemSBU in strListSBU)
+                                {
+                                    if (itemSBU != "%")
+                                    {
+                                        if (modelName != "" && modelName.Substring(0, itemSBU.Length) == itemSBU)
+                                        {
+                                            match = true;
+                                            //var iHave = list.Find(i => i.Id == iData.Id);
+                                            //if (iHave != null)
+                                            //{
+                                            //    list.Remove(iHave);
+                                            //}
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (modelName != "" && (modelName.Substring(0, 1) != "J" && modelName.Substring(0, 3) != "1YC" && modelName.Substring(0, 3) != "2YC"))
+                                        {
+                                            match = true;
+                                        }
+                                    }
+
+                                    if (match == false)
+                                    {
+                                        var iHave = list.Find(i => i.Id == iData.Id);
+                                        if (iHave != null)
+                                        {
+                                            list.Remove(iHave);
+                                        }
+                                    }
+                                }
+                            }
+                            //list = list.Where(x => strListSBU.Contains(x.ModelName!)).ToList();
+                        }
+                        var rowEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == lastRev.Rev && x.Lrev == lastRev.Lrev && (x.Customer == "" && (x.ModelCode == "" || x.ModelCode == null) && x.ModelName == "" && x.Sebango == "" && x.Pltype == "")).ToList();
+                        list.AddRange(rowEmpty);
+                        if (list.Count < 10)
+                        {
+                            for (int i = list.Count; i < 10; i++)
+                            {
+                                AlSaleForecaseMonth newRow = new AlSaleForecaseMonth();
+                                newRow.ModelCode = "";
+                                newRow.ModelName = "";
+                                newRow.Sebango = "";
+                                newRow.Pltype = "";
+                                newRow.Customer = "";
+                                newRow.Ym = ym;
+                                newRow.Rev = lastRev.Rev;
+                                newRow.Lrev = lastRev.Lrev;
+                                newRow.CreateDate = DateTime.Now;
+                                newRow.CreateBy = param.empcode;
+                                _contextDBSCM.AlSaleForecaseMonths.Add(newRow);
+                                _contextDBSCM.SaveChanges();
+                                int Id = newRow.Id;
+                                var recordNow = _contextDBSCM.AlSaleForecaseMonths.FirstOrDefault(x => x.Id == Id);
+                                if (recordNow != null)
+                                {
+                                    list.Add(recordNow);
+                                }
+                            }
+                        }
                     }
                     else
                     {
-                        list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == lastRev.Rev && x.Lrev == "999").OrderBy(x => x.Id).ToList();
+                        list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == lastRev.Rev && x.Lrev == "999" && x.Customer != "" && x.ModelCode != "" && x.ModelName != "" && x.Sebango != "" && x.Pltype != "").OrderBy(x => x.Id).ToList();
                     }
                 }
                 else
@@ -440,7 +515,7 @@ namespace api_sale_planning.Controllers
 
         [HttpPost]
         [Route("/update/sale")]
-        public IActionResult UpdateSale([FromBody] MUpdateSale param)
+        public async Task<IActionResult> UpdateSale([FromBody] MUpdateSale param)
         {
             string ym = param.ym;
             string rev = "1";
@@ -454,97 +529,112 @@ namespace api_sale_planning.Controllers
             }
             foreach (MSale item in data)
             {
-                AlSaleForecaseMonth prev = _contextDBSCM.AlSaleForecaseMonths.FirstOrDefault(x => x.Ym == ym && x.Id == item.id)!;
-                if (prev != null)
+                try
                 {
-                    prev.UpdateDate = DateTime.Now;
-                    prev.Ym = ym;
-                    prev.Customer = item.customer;
-                    prev.ModelCode = item.sebango;
-                    prev.ModelName = item.modelName;
-                    prev.Sebango = item.sebango;
-                    prev.Pltype = item.pltype;
-                    prev.D01 = service.setNumSale(item.D01!);
-                    prev.D02 = service.setNumSale(item.D02!);
-                    prev.D03 = service.setNumSale(item.D03!);
-                    prev.D04 = service.setNumSale(item.D04!);
-                    prev.D05 = service.setNumSale(item.D05!);
-                    prev.D06 = service.setNumSale(item.D06!);
-                    prev.D07 = service.setNumSale(item.D07!);
-                    prev.D08 = service.setNumSale(item.D08!);
-                    prev.D09 = service.setNumSale(item.D09!);
-                    prev.D10 = service.setNumSale(item.D10!);
-                    prev.D11 = service.setNumSale(item.D11!);
-                    prev.D12 = service.setNumSale(item.D12!);
-                    prev.D13 = service.setNumSale(item.D13!);
-                    prev.D14 = service.setNumSale(item.D14!);
-                    prev.D15 = service.setNumSale(item.D15!);
-                    prev.D16 = service.setNumSale(item.D16!);
-                    prev.D17 = service.setNumSale(item.D17!);
-                    prev.D18 = service.setNumSale(item.D18!);
-                    prev.D19 = service.setNumSale(item.D19!);
-                    prev.D20 = service.setNumSale(item.D20!);
-                    prev.D21 = service.setNumSale(item.D21!);
-                    prev.D22 = service.setNumSale(item.D22!);
-                    prev.D23 = service.setNumSale(item.D23!);
-                    prev.D24 = service.setNumSale(item.D24!);
-                    prev.D25 = service.setNumSale(item.D25!);
-                    prev.D26 = service.setNumSale(item.D26!);
-                    prev.D27 = service.setNumSale(item.D27!);
-                    prev.D28 = service.setNumSale(item.D28!);
-                    prev.D29 = service.setNumSale(item.D29!);
-                    prev.D30 = service.setNumSale(item.D30!);
-                    prev.D31 = service.setNumSale(item.D31!);
-                    _contextDBSCM.AlSaleForecaseMonths.Update(prev);
+                    if (item.id != null)
+                    {
+                        AlSaleForecaseMonth prev = _contextDBSCM.AlSaleForecaseMonths.FirstOrDefault(x => x.Ym == ym && x.Id == item.id)!;
+                        if (prev != null)
+                        {
+                            prev.UpdateDate = DateTime.Now;
+                            prev.Ym = ym;
+                            prev.Customer = item.customer;
+                            prev.ModelCode = item.sebango;
+                            prev.ModelName = item.modelName;
+                            prev.Sebango = item.sebango;
+                            prev.Pltype = item.pltype;
+                            prev.D01 = service.setNumSale(item.D01!);
+                            prev.D02 = service.setNumSale(item.D02!);
+                            prev.D03 = service.setNumSale(item.D03!);
+                            prev.D04 = service.setNumSale(item.D04!);
+                            prev.D05 = service.setNumSale(item.D05!);
+                            prev.D06 = service.setNumSale(item.D06!);
+                            prev.D07 = service.setNumSale(item.D07!);
+                            prev.D08 = service.setNumSale(item.D08!);
+                            prev.D09 = service.setNumSale(item.D09!);
+                            prev.D10 = service.setNumSale(item.D10!);
+                            prev.D11 = service.setNumSale(item.D11!);
+                            prev.D12 = service.setNumSale(item.D12!);
+                            prev.D13 = service.setNumSale(item.D13!);
+                            prev.D14 = service.setNumSale(item.D14!);
+                            prev.D15 = service.setNumSale(item.D15!);
+                            prev.D16 = service.setNumSale(item.D16!);
+                            prev.D17 = service.setNumSale(item.D17!);
+                            prev.D18 = service.setNumSale(item.D18!);
+                            prev.D19 = service.setNumSale(item.D19!);
+                            prev.D20 = service.setNumSale(item.D20!);
+                            prev.D21 = service.setNumSale(item.D21!);
+                            prev.D22 = service.setNumSale(item.D22!);
+                            prev.D23 = service.setNumSale(item.D23!);
+                            prev.D24 = service.setNumSale(item.D24!);
+                            prev.D25 = service.setNumSale(item.D25!);
+                            prev.D26 = service.setNumSale(item.D26!);
+                            prev.D27 = service.setNumSale(item.D27!);
+                            prev.D28 = service.setNumSale(item.D28!);
+                            prev.D29 = service.setNumSale(item.D29!);
+                            prev.D30 = service.setNumSale(item.D30!);
+                            prev.D31 = service.setNumSale(item.D31!);
+                            _contextDBSCM.AlSaleForecaseMonths.Update(prev);
+                            int itemupdate = await _contextDBSCM.SaveChangesAsync();
+                        }
+                    }
+                    else
+                    {
+                        if (item.customer != "" && item.modelName != "" && item.sebango != "" && item.pltype != "")
+                        {
+                            AlSaleForecaseMonth itemAdd = new AlSaleForecaseMonth();
+                            itemAdd.Ym = ym;
+                            itemAdd.Customer = item.customer;
+                            itemAdd.ModelCode = item.sebango;
+                            itemAdd.ModelName = item.modelName;
+                            itemAdd.Sebango = item.sebango;
+                            itemAdd.Pltype = item.pltype;
+                            itemAdd.D01 = service.setNumSale(item.D01!);
+                            itemAdd.D02 = service.setNumSale(item.D02!);
+                            itemAdd.D03 = service.setNumSale(item.D03!);
+                            itemAdd.D04 = service.setNumSale(item.D04!);
+                            itemAdd.D05 = service.setNumSale(item.D05!);
+                            itemAdd.D06 = service.setNumSale(item.D06!);
+                            itemAdd.D07 = service.setNumSale(item.D07!);
+                            itemAdd.D08 = service.setNumSale(item.D08!);
+                            itemAdd.D09 = service.setNumSale(item.D09!);
+                            itemAdd.D10 = service.setNumSale(item.D10!);
+                            itemAdd.D11 = service.setNumSale(item.D11!);
+                            itemAdd.D12 = service.setNumSale(item.D12!);
+                            itemAdd.D13 = service.setNumSale(item.D13!);
+                            itemAdd.D14 = service.setNumSale(item.D14!);
+                            itemAdd.D15 = service.setNumSale(item.D15!);
+                            itemAdd.D16 = service.setNumSale(item.D16!);
+                            itemAdd.D17 = service.setNumSale(item.D17!);
+                            itemAdd.D18 = service.setNumSale(item.D18!);
+                            itemAdd.D19 = service.setNumSale(item.D19!);
+                            itemAdd.D20 = service.setNumSale(item.D20!);
+                            itemAdd.D21 = service.setNumSale(item.D21!);
+                            itemAdd.D22 = service.setNumSale(item.D22!);
+                            itemAdd.D23 = service.setNumSale(item.D23!);
+                            itemAdd.D24 = service.setNumSale(item.D24!);
+                            itemAdd.D25 = service.setNumSale(item.D25!);
+                            itemAdd.D26 = service.setNumSale(item.D26!);
+                            itemAdd.D27 = service.setNumSale(item.D27!);
+                            itemAdd.D28 = service.setNumSale(item.D28!);
+                            itemAdd.D29 = service.setNumSale(item.D29!);
+                            itemAdd.D30 = service.setNumSale(item.D30!);
+                            itemAdd.D31 = service.setNumSale(item.D31!);
+                            itemAdd.CreateBy = param.empcode;
+                            itemAdd.CreateDate = DateTime.Now;
+                            itemAdd.UpdateDate = DateTime.Now;
+                            itemAdd.Rev = rev;
+                            itemAdd.Lrev = lrev;
+                            _contextDBSCM.AlSaleForecaseMonths.Add(itemAdd);
+                        }
+                    }
                 }
-                //AlSaleForecaseMonth itemAdd = new AlSaleForecaseMonth();
-                //itemAdd.Ym = ym;
-                //itemAdd.Customer = item.customer;
-                //itemAdd.ModelCode = item.modelCode;
-                //itemAdd.Sebango = item.sebango;
-                //itemAdd.Pltype = item.pltype;
-                //itemAdd.D01 = service.setNumSale(item.D01!);
-                //itemAdd.D02 = service.setNumSale(item.D02!);
-                //itemAdd.D03 = service.setNumSale(item.D03!);
-                //itemAdd.D04 = service.setNumSale(item.D04!);
-                //itemAdd.D05 = service.setNumSale(item.D05!);
-                //itemAdd.D06 = service.setNumSale(item.D06!);
-                //itemAdd.D07 = service.setNumSale(item.D07!);
-                //itemAdd.D08 = service.setNumSale(item.D08!);
-                //itemAdd.D09 = service.setNumSale(item.D09!);
-                //itemAdd.D10 = service.setNumSale(item.D10!);
-                //itemAdd.D11 = service.setNumSale(item.D11!);
-                //itemAdd.D12 = service.setNumSale(item.D12!);
-                //itemAdd.D13 = service.setNumSale(item.D13!);
-                //itemAdd.D14 = service.setNumSale(item.D14!);
-                //itemAdd.D15 = service.setNumSale(item.D15!);
-                //itemAdd.D16 = service.setNumSale(item.D16!);
-                //itemAdd.D17 = service.setNumSale(item.D17!);
-                //itemAdd.D18 = service.setNumSale(item.D18!);
-                //itemAdd.D19 = service.setNumSale(item.D19!);
-                //itemAdd.D20 = service.setNumSale(item.D20!);
-                //itemAdd.D21 = service.setNumSale(item.D21!);
-                //itemAdd.D22 = service.setNumSale(item.D22!);
-                //itemAdd.D23 = service.setNumSale(item.D23!);
-                //itemAdd.D24 = service.setNumSale(item.D24!);
-                //itemAdd.D25 = service.setNumSale(item.D25!);
-                //itemAdd.D26 = service.setNumSale(item.D26!);
-                //itemAdd.D27 = service.setNumSale(item.D27!);
-                //itemAdd.D28 = service.setNumSale(item.D28!);
-                //itemAdd.D29 = service.setNumSale(item.D29!);
-                //itemAdd.D30 = service.setNumSale(item.D30!);
-                //itemAdd.D31 = service.setNumSale(item.D31!);
-                //itemAdd.CreateBy = param.empcode;
-                //itemAdd.CreateDate = DateTime.Now;
-                //itemAdd.Rev = rev;
-                //itemAdd.Lrev = lrev;
-                //_contextDBSCM.AlSaleForecaseMonths.Update(itemAdd);
+                catch (Exception e)
+                {
+                    string msg = e.Message;
+                }
             }
             int update = _contextDBSCM.SaveChanges();
-
-
-
-
             //_contextDBSCM.AlSaleForecaseMonths.RemoveRange(contentPrev);
             //foreach (MSale ItemUpdate in data)
             //{
@@ -869,5 +959,27 @@ namespace api_sale_planning.Controllers
                 status = insertRow
             });
         }
+
+        [HttpPost]
+        [Route("/clearempty/sale")]
+        public IActionResult ClearEmptySale([FromBody] MUpdateSale param)
+        {
+            List<MSale> data = param.listSale;
+            foreach (MSale itemSale in data)
+            {
+                if (itemSale.id != null && itemSale.customer!.Trim() == "" && (itemSale.modelCode == "" || itemSale.modelCode == null) && itemSale.sebango!.Trim() == "" && itemSale.pltype!.Trim() == "")
+                {
+                    var item = _contextDBSCM.AlSaleForecaseMonths.Find(itemSale.id);
+                    _contextDBSCM.AlSaleForecaseMonths.Remove(item!);
+
+                }
+            }
+            int delete = _contextDBSCM.SaveChanges();
+            return Ok(new
+            {
+                status = delete
+            });
+        }
     }
+
 }
