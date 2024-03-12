@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -15,6 +16,7 @@ namespace api_sale_planning.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private Service service = new Service();
+        private ConnectDB _dbSCM = new ConnectDB("DBSCM");
         private readonly DBSCM _contextDBSCM;
         private readonly DBHRM _contextDBHRM;
         private readonly DBBCS _contextDBBCS;
@@ -552,7 +554,7 @@ namespace api_sale_planning.Controllers
         public IActionResult getSebango()
         {
             List<MFilter> res = new List<MFilter>();
-            var content = _contextDBSCM.PnCompressors.Where(x => x.ModelCode != "BMC" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "PACK" && x.ModelCode != "SPECIAL" && x.ModelCode != "BMSROTOR" && x.ModelCode != "BMSSTATOR").GroupBy(x => x.ModelCode).Select(g=>new
+            var content = _contextDBSCM.PnCompressors.Where(x => x.ModelCode != "BMC" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "PACK" && x.ModelCode != "SPECIAL" && x.ModelCode != "BMSROTOR" && x.ModelCode != "BMSSTATOR").GroupBy(x => x.ModelCode).Select(g => new
             {
                 modelCode = g.Key
             }).ToList();
@@ -630,9 +632,10 @@ namespace api_sale_planning.Controllers
                             prev.D29 = service.setNumSale(item.D29!);
                             prev.D30 = service.setNumSale(item.D30!);
                             prev.D31 = service.setNumSale(item.D31!);
+
                             _contextDBSCM.AlSaleForecaseMonths.Update(prev);
                         }
-                        int itemupdate = _contextDBSCM.SaveChanges();
+                        //int itemupdate = _contextDBSCM.SaveChanges();
                     }
                     else
                     {
@@ -706,28 +709,90 @@ namespace api_sale_planning.Controllers
             MGetRevAndLrev oGetRevAndLrev = GetRevAndLrev(ym);
             int RevCurrent = oGetRevAndLrev.rev;
             int LrevCurrent = oGetRevAndLrev.lrev;
+            string message = "";
+            int count = 0;
+            int countUpdate = 0;
+            bool result = false;
             if (oGetRevAndLrev != null && ym != "")
             {
-                List<AlSaleForecaseMonth> listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == LrevCurrent.ToString()).ToList();
-                if (listPrev.Count > 0)
+                SqlCommand sql = new SqlCommand();
+                sql.CommandText = @"SELECT *  FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE YM = '" + ym + "' AND REV = '" + RevCurrent.ToString() + "' AND LREV = '" + LrevCurrent.ToString() + "'";
+                DataTable dtSaleforecase = _dbSCM.Query(sql);
+                count = dtSaleforecase.Rows.Count;
+                foreach (DataRow dr in dtSaleforecase.Rows)
                 {
-                    listPrev.ForEach(x => x.Lrev = "999");
-                    listPrev.ForEach(x => x.CreateBy = empcode);
-                    _contextDBSCM.AlSaleForecaseMonths.UpdateRange(listPrev);
-                    int update = _contextDBSCM.SaveChanges();
-                    return Ok(new
+                    try
                     {
-                        status = update
-                    });
+                        //string MODELCODE = dr["ModelCode"].ToString();
+                        //string MODELNAME = dr["ModelName"].ToString();
+                        //string PLTYPE = dr["PLTYPE"].ToString();
+                        //string SEBANGO = dr["Sebango"].ToString();
+                        //string CUSTOMER = dr["Customer"].ToString();
+                        string ID = dr["ID"].ToString();
+                        SqlCommand sqlUpdate = new SqlCommand();
+                        sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "',UpdateDate = '" + DateTime.Now + "' WHERE ID = '" + ID + "'";
+                        int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
+                        if (update > 0)
+                        {
+                            countUpdate++;
+                        }
+                        //if (MODELCODE != "" && MODELNAME != "" && PLTYPE != "" && SEBANGO != "")
+                        //{
+                        //    SqlCommand sqlUpdate = new SqlCommand();
+                        //    sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "',UpdateDate = '" + DateTime.Now + "' WHERE YM = '" + ym + "' AND YM = '" + ym + "' AND REV = '" + RevCurrent + "' AND LREV = '" + LrevCurrent + "' AND ModelCode = '" + MODELCODE + "' AND ModelName = '" + MODELNAME + "' AND PLTYPE = '" + PLTYPE + "' AND Customer = '" + CUSTOMER + "'";
+                        //    int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
+
+
+                        //    if (update > 0)
+                        //    {
+                        //        countUpdate++;
+                        //    }
+                        //    else
+                        //    {
+                        //        Console.WriteLine("123");
+                        //    }
+                        //}
+                    }
+                    catch (Exception e)
+                    {
+                        message = e.Message;
+                    }
                 }
-                else
+                if (count == countUpdate)
                 {
-                    return Ok(new
-                    {
-                        status = false,
-                        error = $"ไม่พบข้อมูล {ym}"
-                    });
+                    result = true;
                 }
+                return Ok(new
+                {
+                    status = result,
+                    msg = message,
+                });
+
+                //List<AlSaleForecaseMonth> listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == LrevCurrent.ToString()).ToList();
+                //if (listPrev.Count > 0)
+                //{
+
+                //    foreach (AlSaleForecaseMonth item in listPrev)
+                //    {
+                //        item.Lrev = "999";
+                //        item.CreateBy = empcode;
+                //        item.UpdateDate = DateTime.Now;
+                //        _contextDBSCM.AlSaleForecaseMonths.Update(item);
+                //    }
+                //    int update = _contextDBSCM.SaveChanges();
+                //    return Ok(new
+                //    {
+                //        status = update
+                //    });
+                //}
+                //else
+                //{
+                //    return Ok(new
+                //    {
+                //        status = false,
+                //        error = $"ไม่พบข้อมูล {ym}"
+                //    });
+                //}
             }
             else
             {
@@ -1072,6 +1137,9 @@ namespace api_sale_planning.Controllers
                 row.Rev = rev;
                 row.Lrev = lrev;
                 row.CreateDate = DateTime.Now;
+                row.UpdateDate = DateTime.Now;
+                row.ModelCode = "";
+                row.CreateBy = param.empcode;
                 _contextDBSCM.AlSaleForecaseMonths.Add(row);
             }
             int insertRow = _contextDBSCM.SaveChanges();
