@@ -315,12 +315,21 @@ namespace api_sale_planning.Controllers
             return Ok(content);
         }
 
+
         [HttpGet]
-        [Route("/sale/pltype")]
+        [Route("/get/pltype")]
         public IActionResult GetPltype()
         {
+            List<MFilter> res = new List<MFilter>();
             var content = _contextDBSCM.AlPalletTypeMappings.ToList();
-            return Ok(content);
+            foreach (var item in content)
+            {
+                MFilter i = new MFilter();
+                i.value = item.Pltype;
+                i.label = item.Pltype;
+                res.Add(i);
+            }
+            return Ok(res);
         }
 
         [HttpPost]
@@ -399,7 +408,7 @@ namespace api_sale_planning.Controllers
                         }
                         if (filterSBU != null && filterSBU.Count > 0)
                         {
-                                List<string> strListSBU = filterSBU.Select(x => x.value!).ToList();
+                            List<string> strListSBU = filterSBU.Select(x => x.value!).ToList();
                             foreach (AlSaleForecaseMonth iData in list.ToList())
                             {
                                 string modelName = iData.ModelName!;
@@ -514,6 +523,51 @@ namespace api_sale_planning.Controllers
             });
         }
 
+        [HttpGet]
+        [Route("/get/customer")]
+        public IActionResult getCustomer()
+        {
+            List<AlCustomer> rCustomer = _contextDBSCM.AlCustomers.ToList();
+            return Ok(rCustomer);
+        }
+
+        [HttpGet]
+        [Route("/get/model")]
+        public IActionResult getModel()
+        {
+            List<MFilter> res = new List<MFilter>();
+            var content = _contextDBSCM.PnCompressors.Where(x => x.ModelCode != "BMC" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "PACK" && x.ModelCode != "SPECIAL" && x.ModelCode != "BMSROTOR" && x.ModelCode != "BMSSTATOR").ToList();
+            foreach (var item in content)
+            {
+                MFilter i = new MFilter();
+                i.label = item.Model;
+                i.value = item.Model.Trim();
+                res.Add(i);
+            }
+            return Ok(res);
+        }
+
+        [HttpGet]
+        [Route("/get/sebango")]
+        public IActionResult getSebango()
+        {
+            List<MFilter> res = new List<MFilter>();
+            var content = _contextDBSCM.PnCompressors.Where(x => x.ModelCode != "BMC" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "PACK" && x.ModelCode != "SPECIAL" && x.ModelCode != "BMSROTOR" && x.ModelCode != "BMSSTATOR").GroupBy(x => x.ModelCode).Select(g=>new
+            {
+                modelCode = g.Key
+            }).ToList();
+            foreach (var item in content.ToList())
+            {
+                MFilter i = new MFilter();
+                i.label = item.modelCode;
+                i.value = item.modelCode;
+                res.Add(i);
+            }
+            return Ok(res);
+        }
+
+
+
 
         [HttpPost]
         [Route("/update/sale")]
@@ -578,7 +632,7 @@ namespace api_sale_planning.Controllers
                             prev.D31 = service.setNumSale(item.D31!);
                             _contextDBSCM.AlSaleForecaseMonths.Update(prev);
                         }
-                        int itemupdate =  _contextDBSCM.SaveChanges();
+                        int itemupdate = _contextDBSCM.SaveChanges();
                     }
                     else
                     {
@@ -1054,6 +1108,7 @@ namespace api_sale_planning.Controllers
                 status = delete
             });
         }
+
     }
 
 }
