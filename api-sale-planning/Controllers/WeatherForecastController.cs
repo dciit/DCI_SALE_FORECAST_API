@@ -36,8 +36,6 @@ namespace api_sale_planning.Controllers
             return Ok(content);
         }
 
-
-
         [HttpPost]
         [Route("/saleforecast/update")]
         public IActionResult updateSaleForecast([FromBody] MSaveSaleForecase param)
@@ -67,44 +65,6 @@ namespace api_sale_planning.Controllers
             }
             return Ok();
         }
-
-        //[HttpPost]
-        //[Route("/saleforecast/distribution")]
-        //public IActionResult Distribution([FromBody] MParam param)
-        //{
-        //    string ym = param.ym;
-        //    List<AlSaleForecaseMonth> listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym).ToList();
-        //    if (listPrev.Count > 0)
-        //    {
-        //        string rev = listPrev[0].Rev;
-        //        string? lrev = "999";
-        //        listPrev.ForEach(x => x.Lrev = lrev);
-        //        _contextDBSCM.AlSaleForecaseMonths.UpdateRange(listPrev);
-        //        int update = _contextDBSCM.SaveChanges();
-        //        return Ok(new
-        //        {
-        //            status = update
-        //        });
-        //    }
-        //    else
-        //    {
-        //        return Ok(new
-        //        {
-        //            status = false,
-        //            error = $"ไม่พบข้อมูล {ym}"
-        //        });
-        //    }
-        //}
-
-        //[HttpPost]
-        //[Route("/saleforecast/getsaleofmonth")]
-        //public IActionResult getSaleOfMonth([FromBody] MParam param)
-        //{
-        //    string year = param.year.ToString();
-        //    string month = ((int)param.month).ToString("D2");
-        //    List<AlSaleForecaseMonth> res = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == $"{year}{month}").OrderBy(x => x.Id).ToList();
-        //    return Ok(res);
-        //}
 
         [HttpPost]
         [Route("/updaterow")]
@@ -176,38 +136,8 @@ namespace api_sale_planning.Controllers
                     itemForecast.Lrev = lrev.ToString();
                     _contextDBSCM.AlSaleForecaseMonths.Add(itemForecast);
                 }
-
-                //var checkExist = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Rev == itemForecast.Rev && x.Lrev == itemForecast.Lrev && x.ModelCode == itemForecast.ModelCode && x.Customer == itemForecast.Customer && x.Sebango == itemForecast.Sebango && x.Pltype == itemForecast.Pltype).FirstOrDefault();
-                //if (checkExist == null)
-                //{
-
-                //}
             }
             int insert = _contextDBSCM.SaveChanges();
-            //sql.CommandText = $@"SELECT  * FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE ID = {param.id}";
-            //DataTable dt = _dbSCM.Query(sql);
-            //if (dt.Rows.Count > 0)
-            //{
-            //    SqlCommand sqlUpdate = new SqlCommand();
-            //    sqlUpdate.CommandText = $@"UPDATE [dbSCM].[dbo].[AL_SaleForecaseMonth] SET {param.column} = '{param.val}' WHERE ID = {param.id}";
-            //    int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
-            //    return Ok(new
-            //    {
-            //        status = update
-            //    });
-            //}
-            //else
-            //{
-            //    int newId = 0;
-            //    AlSaleForecaseMonth itemAdd = param.alforecast;
-            //    _contextDBSCM.AlSaleForecaseMonths.Add(itemAdd);
-            //    int insert = _contextDBSCM.SaveChanges();
-            //    if (insert > 0)
-            //    {
-            //        newId = itemAdd.Id;
-            //    }
-            //    return Ok(new { status = insert, id = newId });
-            //}
             return Ok(new
             {
                 status = insert
@@ -220,67 +150,6 @@ namespace api_sale_planning.Controllers
         {
 
             var context_prev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.Ym.ToString() && x.Lrev == param.Ym).ToList();
-
-            //int rev = 0;
-            //var exist = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == param.Ym.ToString() && x.Lrev == "999").OrderBy(x => x.Id).ToList();
-            //if (exist.Count > 0)
-            //{
-            //    rev = int.Parse(exist.FirstOrDefault().Rev);
-            //    foreach (var item in exist)
-            //    {
-            //        item.Lrev = rev.ToString();
-            //        _contextDBSCM.AlSaleForecaseMonths.Update(item);
-            //    }
-            //    _contextDBSCM.SaveChanges();
-            //}
-            //foreach (AlSaleForecaseMonth row in param.data)
-            //{
-            //    AlSaleForecaseMonth itemAdd = new AlSaleForecaseMonth();
-            //    itemAdd.CreateBy = row.CreateBy;
-            //    itemAdd.Customer = row.Customer;
-            //    itemAdd.Ym = row.Ym;
-            //    itemAdd.ModelCode = row.ModelCode;
-            //    itemAdd.ModelName = row.ModelName;
-            //    itemAdd.Sebango = row.Sebango;
-            //    itemAdd.Pltype = row.Pltype;
-            //    itemAdd.Customer = row.Customer;
-            //    itemAdd.CreateDate = DateTime.Now;
-            //    itemAdd.D01 = row.D01;
-            //    itemAdd.D02 = row.D02;
-            //    itemAdd.D03 = row.D03;
-            //    itemAdd.D04 = row.D04;
-            //    itemAdd.D05 = row.D05;
-            //    itemAdd.D06 = row.D06;
-            //    itemAdd.D07 = row.D07;
-            //    itemAdd.D08 = row.D08;
-            //    itemAdd.D09 = row.D09;
-            //    itemAdd.D10 = row.D10;
-            //    itemAdd.D11 = row.D11;
-            //    itemAdd.D12 = row.D12;
-            //    itemAdd.D13 = row.D13;
-            //    itemAdd.D14 = row.D14;
-            //    itemAdd.D15 = row.D15;
-            //    itemAdd.D16 = row.D16;
-            //    itemAdd.D17 = row.D17;
-            //    itemAdd.D18 = row.D18;
-            //    itemAdd.D19 = row.D19;
-            //    itemAdd.D20 = row.D20;
-            //    itemAdd.D21 = row.D21;
-            //    itemAdd.D22 = row.D22;
-            //    itemAdd.D23 = row.D23;
-            //    itemAdd.D24 = row.D24;
-            //    itemAdd.D25 = row.D25;
-            //    itemAdd.D26 = row.D26;
-            //    itemAdd.D27 = row.D27;
-            //    itemAdd.D28 = row.D28;
-            //    itemAdd.D29 = row.D29;
-            //    itemAdd.D30 = row.D30;
-            //    itemAdd.D31 = row.D31;
-            //    itemAdd.Rev = (rev + 1).ToString();
-            //    itemAdd.Lrev = "999";
-            //    _contextDBSCM.AlSaleForecaseMonths.Add(itemAdd);
-            //}
-            //int insert = _contextDBSCM.SaveChanges();
             int insert = 0;
             return Ok(new
             {
@@ -403,47 +272,7 @@ namespace api_sale_planning.Controllers
                     if (LrevCurrent != 999) // Not Distribution
                     {
                         list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && (x.Rev == x.Lrev) && (x.Customer != "" && (x.ModelCode != "" && x.ModelCode != null) && x.ModelName != "" && x.Sebango != "" && x.Pltype != "")).OrderByDescending(x => x.Customer).ThenBy(x => x.Id).ToList();
-                        if (filterCustomer != null && filterCustomer.Count > 0)
-                        {
-                            List<string> strListCustomer = filterCustomer.Select(x => x.value).ToList();
-                            list = list.Where(x => strListCustomer.Contains(x.Customer)).ToList();
-                        }
-                        if (filterSBU != null && filterSBU.Count > 0)
-                        {
-                            List<string> strListSBU = filterSBU.Select(x => x.value!).ToList();
-                            foreach (AlSaleForecaseMonth iData in list.ToList())
-                            {
-                                string modelName = iData.ModelName!;
-                                bool match = false;
-                                foreach (string itemSBU in strListSBU)
-                                {
-                                    if (itemSBU != "%")
-                                    {
-                                        if (modelName != "" && modelName.Substring(0, itemSBU.Length) == itemSBU)
-                                        {
-                                            match = true;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (modelName != "" && (modelName.Substring(0, 1) != "J" && modelName.Substring(0, 3) != "1YC" && modelName.Substring(0, 3) != "2YC"))
-                                        {
-                                            match = true;
-                                        }
-                                    }
 
-                                    if (match == false)
-                                    {
-                                        var iHave = list.Find(i => i.Id == iData.Id);
-                                        if (iHave != null)
-                                        {
-                                            list.Remove(iHave);
-                                        }
-                                    }
-                                }
-                            }
-                            //list = list.Where(x => strListSBU.Contains(x.ModelName!)).ToList();
-                        }
                         var rowEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == RevCurrent.ToString() && (x.Customer == "" && (x.ModelCode == "" || x.ModelCode == null) && x.ModelName == "" && x.Sebango == "" && x.Pltype == "")).ToList();
                         list.AddRange(rowEmpty);
                         if (list.Count < 10)
@@ -475,6 +304,46 @@ namespace api_sale_planning.Controllers
                     else // Current is Distribution
                     {
                         list = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == "999" && x.Customer != "" && x.ModelCode != "" && x.ModelName != "" && x.Sebango != "" && x.Pltype != "").OrderByDescending(x => x.Customer).ThenBy(x => x.Id).ToList();
+                    }
+                    if (filterCustomer != null && filterCustomer.Count > 0)
+                    {
+                        List<string> strListCustomer = filterCustomer.Select(x => x.value).ToList();
+                        list = list.Where(x => strListCustomer.Contains(x.Customer)).ToList();
+                    }
+                    if (filterSBU != null && filterSBU.Count > 0)
+                    {
+                        List<string> strListSBU = filterSBU.Select(x => x.value!).ToList();
+                        foreach (AlSaleForecaseMonth iData in list.ToList())
+                        {
+                            string modelName = iData.ModelName!;
+                            bool match = false;
+                            foreach (string itemSBU in strListSBU)
+                            {
+                                if (itemSBU != "%")
+                                {
+                                    if (modelName != "" && modelName.Substring(0, itemSBU.Length) == itemSBU)
+                                    {
+                                        match = true;
+                                    }
+                                }
+                                else
+                                {
+                                    if (modelName != "" && (modelName.Substring(0, 1) != "J" && modelName.Substring(0, 3) != "1YC" && modelName.Substring(0, 3) != "2YC"))
+                                    {
+                                        match = true;
+                                    }
+                                }
+
+                                if (match == false)
+                                {
+                                    var iHave = list.Find(i => i.Id == iData.Id);
+                                    if (iHave != null)
+                                    {
+                                        list.Remove(iHave);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else
@@ -568,9 +437,6 @@ namespace api_sale_planning.Controllers
             return Ok(res);
         }
 
-
-
-
         [HttpPost]
         [Route("/update/sale")]
         public IActionResult UpdateSale([FromBody] MUpdateSale param)
@@ -635,7 +501,6 @@ namespace api_sale_planning.Controllers
 
                             _contextDBSCM.AlSaleForecaseMonths.Update(prev);
                         }
-                        //int itemupdate = _contextDBSCM.SaveChanges();
                     }
                     else
                     {
@@ -723,11 +588,6 @@ namespace api_sale_planning.Controllers
                 {
                     try
                     {
-                        //string MODELCODE = dr["ModelCode"].ToString();
-                        //string MODELNAME = dr["ModelName"].ToString();
-                        //string PLTYPE = dr["PLTYPE"].ToString();
-                        //string SEBANGO = dr["Sebango"].ToString();
-                        //string CUSTOMER = dr["Customer"].ToString();
                         string ID = dr["ID"].ToString();
                         SqlCommand sqlUpdate = new SqlCommand();
                         sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "',UpdateDate = '" + DateTime.Now + "' WHERE ID = '" + ID + "'";
@@ -736,22 +596,6 @@ namespace api_sale_planning.Controllers
                         {
                             countUpdate++;
                         }
-                        //if (MODELCODE != "" && MODELNAME != "" && PLTYPE != "" && SEBANGO != "")
-                        //{
-                        //    SqlCommand sqlUpdate = new SqlCommand();
-                        //    sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "',UpdateDate = '" + DateTime.Now + "' WHERE YM = '" + ym + "' AND YM = '" + ym + "' AND REV = '" + RevCurrent + "' AND LREV = '" + LrevCurrent + "' AND ModelCode = '" + MODELCODE + "' AND ModelName = '" + MODELNAME + "' AND PLTYPE = '" + PLTYPE + "' AND Customer = '" + CUSTOMER + "'";
-                        //    int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
-
-
-                        //    if (update > 0)
-                        //    {
-                        //        countUpdate++;
-                        //    }
-                        //    else
-                        //    {
-                        //        Console.WriteLine("123");
-                        //    }
-                        //}
                     }
                     catch (Exception e)
                     {
@@ -767,32 +611,6 @@ namespace api_sale_planning.Controllers
                     status = result,
                     msg = message,
                 });
-
-                //List<AlSaleForecaseMonth> listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == LrevCurrent.ToString()).ToList();
-                //if (listPrev.Count > 0)
-                //{
-
-                //    foreach (AlSaleForecaseMonth item in listPrev)
-                //    {
-                //        item.Lrev = "999";
-                //        item.CreateBy = empcode;
-                //        item.UpdateDate = DateTime.Now;
-                //        _contextDBSCM.AlSaleForecaseMonths.Update(item);
-                //    }
-                //    int update = _contextDBSCM.SaveChanges();
-                //    return Ok(new
-                //    {
-                //        status = update
-                //    });
-                //}
-                //else
-                //{
-                //    return Ok(new
-                //    {
-                //        status = false,
-                //        error = $"ไม่พบข้อมูล {ym}"
-                //    });
-                //}
             }
             else
             {
@@ -895,15 +713,6 @@ namespace api_sale_planning.Controllers
                             status = false
                         });
                     }
-                    //if (content.Count > 0)
-                    //{
-                    //    _contextDBSCM.AlSaleForecaseMonths.RemoveRange(content);
-                    //}
-                    //int delete = _contextDBSCM.SaveChanges();
-                    //return Ok(new
-                    //{
-                    //    status = delete
-                    //});
                 }
                 else
                 {
@@ -935,7 +744,6 @@ namespace api_sale_planning.Controllers
             int LrevCurrent = oGetRevAndLrev.lrev;
             if (RevCurrent != 0 && LrevCurrent != 0 && ym != "")
             {
-                //List<AlSaleForecaseMonth> rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString()).OrderBy(x => x.Id).ToList();
                 List<AlSaleForecaseMonth> rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == RevCurrent.ToString() && x.Lrev == LrevCurrent.ToString()).OrderBy(x => x.Id).ToList();
                 if (rSaleForecase.Count > 0)
                 {
@@ -1011,86 +819,6 @@ namespace api_sale_planning.Controllers
                     error = $"ไม่พบข้อมูล {ym}"
                 });
             }
-            //bool status = false;
-            //var contentPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym).OrderByDescending(x => x.Rev).FirstOrDefault();
-            //if (contentPrev != null)
-            //{
-            //    List<AlSaleForecaseMonth> listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == contentPrev.Rev).OrderBy(x => x.Id).ToList();
-            //    if (listPrev.Count > 0)
-            //    {
-            //        string rev = (int.Parse(listPrev[0]!.Rev!) + 1).ToString();
-            //        listPrev.ForEach(x => x.Lrev = rev);
-            //        int updatePrev = _contextDBSCM.SaveChanges();
-            //        if (updatePrev > 0)
-            //        {
-            //            foreach (AlSaleForecaseMonth item in listPrev)
-            //            {
-            //                AlSaleForecaseMonth itemAdd = new AlSaleForecaseMonth();
-            //                itemAdd.ModelCode = item.ModelCode;
-            //                itemAdd.ModelName = item.ModelName;
-            //                itemAdd.Pltype = item.Pltype;
-            //                itemAdd.Customer = item.Customer;
-            //                itemAdd.D01 = item.D01;
-            //                itemAdd.D02 = item.D02;
-            //                itemAdd.D03 = item.D03;
-            //                itemAdd.D04 = item.D04;
-            //                itemAdd.D05 = item.D05;
-            //                itemAdd.D06 = item.D06;
-            //                itemAdd.D07 = item.D07;
-            //                itemAdd.D08 = item.D08;
-            //                itemAdd.D09 = item.D09;
-            //                itemAdd.D10 = item.D10;
-            //                itemAdd.D11 = item.D11;
-            //                itemAdd.D12 = item.D12;
-            //                itemAdd.D13 = item.D13;
-            //                itemAdd.D14 = item.D14;
-            //                itemAdd.D15 = item.D15;
-            //                itemAdd.D16 = item.D16;
-            //                itemAdd.D17 = item.D17;
-            //                itemAdd.D18 = item.D18;
-            //                itemAdd.D19 = item.D19;
-            //                itemAdd.D20 = item.D20;
-            //                itemAdd.D21 = item.D21;
-            //                itemAdd.D22 = item.D22;
-            //                itemAdd.D23 = item.D23;
-            //                itemAdd.D24 = item.D24;
-            //                itemAdd.D25 = item.D25;
-            //                itemAdd.D26 = item.D26;
-            //                itemAdd.D27 = item.D27;
-            //                itemAdd.D28 = item.D28;
-            //                itemAdd.D29 = item.D29;
-            //                itemAdd.D30 = item.D30;
-            //                itemAdd.D31 = item.D31;
-            //                itemAdd.CreateDate = DateTime.Now;
-            //                itemAdd.CreateBy = item.CreateBy;
-            //                itemAdd.Rev = rev;
-            //                itemAdd.Lrev = rev;
-            //                itemAdd.Sebango = item.Sebango;
-            //                itemAdd.Row = item.Row;
-            //                itemAdd.Ym = item.Ym;
-            //                _contextDBSCM.AlSaleForecaseMonths.Add(itemAdd);
-            //            }
-            //            int upgrade = _contextDBSCM.SaveChanges();
-            //            if (upgrade > 0)
-            //            {
-            //                status = true;
-            //            }
-            //        }
-            //    }
-            //    return Ok(new
-            //    {
-            //        status = status
-            //    });
-            //}
-            //else
-            //{
-            //    return Ok(new
-            //    {
-            //        status = false,
-            //        error = $"ไม่พบข้อมูล {ym}"
-            //    });
-            //}
-
         }
 
 
@@ -1120,22 +848,18 @@ namespace api_sale_planning.Controllers
         [Route("/newrow/sale")]
         public IActionResult NewRowSale([FromBody] MNewrow param)
         {
+            string empcode = param.empcode;
             string ym = param.ym;
-            string rev = "1";
-            string lrev = "1";
-            List<AlSaleForecaseMonth> contentPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == x.Lrev).OrderByDescending(x => x.Rev).ToList();
-            if (contentPrev.Count > 0 && contentPrev.FirstOrDefault() != null)
-            {
-                rev = contentPrev.FirstOrDefault()!.Rev!;
-                lrev = contentPrev.FirstOrDefault()!.Rev!;
-            }
+            MGetRevAndLrev oGetRevAndLrev = GetRevAndLrev(ym);
+            int RevCurrent = oGetRevAndLrev.rev;
+            int LrevCurrent = oGetRevAndLrev.lrev;
             List<AlSaleForecaseMonth> listNewRow = param.data;
             foreach (AlSaleForecaseMonth row in listNewRow)
             {
                 row.ModelName = "";
                 row.Ym = ym;
-                row.Rev = rev;
-                row.Lrev = lrev;
+                row.Rev = RevCurrent.ToString();
+                row.Lrev = LrevCurrent.ToString();
                 row.CreateDate = DateTime.Now;
                 row.UpdateDate = DateTime.Now;
                 row.ModelCode = "";
