@@ -590,7 +590,7 @@ namespace api_sale_planning.Controllers
                     {
                         string ID = dr["ID"].ToString();
                         SqlCommand sqlUpdate = new SqlCommand();
-                        sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "',UpdateDate = '" + DateTime.Now + "' WHERE ID = '" + ID + "'";
+                        sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "' WHERE ID = '" + ID + "'";
                         int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
                         if (update > 0)
                         {
