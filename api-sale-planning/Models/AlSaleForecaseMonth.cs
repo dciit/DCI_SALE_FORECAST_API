@@ -7,6 +7,7 @@ namespace api_sale_planning.Models
     {
         public int Id { get; set; }
         public string Ym { get; set; } = null!;
+        public string? Diameter { get; set; }
         public string? ModelCode { get; set; }
         public string? ModelName { get; set; }
         public string? Sebango { get; set; }

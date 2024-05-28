@@ -65,6 +65,10 @@
               "target": "Package",
               "version": "[6.0.0, )"
             },
+            "Oracle.ManagedDataAccess.Core": {
+              "target": "Package",
+              "version": "[3.21.120, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.5.0, )"

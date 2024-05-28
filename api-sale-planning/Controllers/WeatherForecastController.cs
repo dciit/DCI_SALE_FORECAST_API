@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 
 namespace api_sale_planning.Controllers
 {
@@ -15,11 +17,15 @@ namespace api_sale_planning.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private Service service = new Service();
         private ConnectDB _dbSCM = new ConnectDB("DBSCM");
         private readonly DBSCM _contextDBSCM;
         private readonly DBHRM _contextDBHRM;
         private readonly DBBCS _contextDBBCS;
+        private OraConnectDB _ALPHAPD = new OraConnectDB("ALPHAPD");
+        private OraConnectDB _ALPHAPD1 = new OraConnectDB("ALPHA01");
+        private OraConnectDB _ALPHAPD2 = new OraConnectDB("ALPHA02");
+        private Service service = new Service();
+
 
         public WeatherForecastController(DBSCM contextDBSCM, DBHRM contextDBHRM, DBBCS contextDBBCS)
         {
@@ -673,46 +679,53 @@ namespace api_sale_planning.Controllers
             {
                 if (ym != "" && ym != null && ym != "null")
                 {
-                    var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym).OrderByDescending(x => x.Rev).FirstOrDefault();
-                    if (content != null)
+                    List<AlSaleForecaseMonth> listSale = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym).ToList();
+                    _contextDBSCM.AlSaleForecaseMonths.RemoveRange(listSale);
+                    int delete = _contextDBSCM.SaveChanges();
+                    return Ok(new
                     {
-                        var listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == content.Rev && x.Lrev == content.Rev).ToList();
-                        listPrev.ForEach(x => x.Lrev = "0");
-                        listPrev.ForEach(x => x.CreateBy = param.empcode);
-                        listPrev.ForEach(x => x.UpdateDate = DateTime.Now);
-                        int updatePrev = _contextDBSCM.SaveChanges();
-                        if (updatePrev > 0 && listPrev.Count > 0)
-                        {
-                            for (int i = 0; i < 10; i++)
-                            {
-                                AlSaleForecaseMonth newRow = new AlSaleForecaseMonth();
-                                newRow.ModelCode = "";
-                                newRow.ModelName = "";
-                                newRow.Sebango = "";
-                                newRow.Pltype = "";
-                                newRow.Customer = "";
-                                newRow.Ym = ym;
-                                newRow.Rev = listPrev.FirstOrDefault().Rev;
-                                newRow.Lrev = listPrev.FirstOrDefault().Rev;
-                                newRow.CreateDate = DateTime.Now;
-                                newRow.CreateBy = param.empcode;
-                                _contextDBSCM.AlSaleForecaseMonths.Add(newRow);
+                        status = delete
+                    });
+                    //var content = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym).OrderByDescending(x => x.Rev).FirstOrDefault();
+                    //if (content != null)
+                    //{
+                    //    var listPrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym == ym && x.Rev == content.Rev && x.Lrev == content.Rev).ToList();
+                    //    listPrev.ForEach(x => x.Lrev = "0");
+                    //    listPrev.ForEach(x => x.CreateBy = param.empcode);
+                    //    listPrev.ForEach(x => x.UpdateDate = DateTime.Now);
+                    //    int updatePrev = _contextDBSCM.SaveChanges();
+                    //    if (updatePrev > 0 && listPrev.Count > 0)
+                    //    {
+                    //        for (int i = 0; i < 10; i++)
+                    //        {
+                    //            AlSaleForecaseMonth newRow = new AlSaleForecaseMonth();
+                    //            newRow.ModelCode = "";
+                    //            newRow.ModelName = "";
+                    //            newRow.Sebango = "";
+                    //            newRow.Pltype = "";
+                    //            newRow.Customer = "";
+                    //            newRow.Ym = ym;
+                    //            newRow.Rev = listPrev.FirstOrDefault().Rev;
+                    //            newRow.Lrev = listPrev.FirstOrDefault().Rev;
+                    //            newRow.CreateDate = DateTime.Now;
+                    //            newRow.CreateBy = param.empcode;
+                    //            _contextDBSCM.AlSaleForecaseMonths.Add(newRow);
 
-                            }
-                            _contextDBSCM.SaveChanges();
-                        }
-                        return Ok(new
-                        {
-                            status = updatePrev
-                        });
-                    }
-                    else
-                    {
-                        return Ok(new
-                        {
-                            status = false
-                        });
-                    }
+                    //        }
+                    //        _contextDBSCM.SaveChanges();
+                    //    }
+                    //    return Ok(new
+                    //    {
+                    //        status = updatePrev
+                    //    });
+                    //}
+                    //else
+                    //{
+                    //    return Ok(new
+                    //    {
+                    //        status = false
+                    //    });
+                    //}
                 }
                 else
                 {
@@ -901,6 +914,391 @@ namespace api_sale_planning.Controllers
             });
         }
 
+        [HttpPost]
+        [Route("/saleforecase/undistribution")]
+        public IActionResult UnDistribution([FromBody] MDistributionSaleForecase obj)
+        {
+            try
+            {
+                Service service = new Service(_contextDBSCM, _contextDBHRM, _contextDBBCS, _ALPHAPD, _ALPHAPD1, _ALPHAPD2);
+                string year = obj.year;
+                string empcode = obj.empcode;
+                string[] ver = service.GetVersion(year);
+                string rev = ver[1];
+                string lrev = ver[2];
+                List<AlSaleForecaseMonth> rSaleModelNotNumberic = new List<AlSaleForecaseMonth>();
+                List<AlSaleForecaseMonth> rSaleDontHaveInSaleNew = new List<AlSaleForecaseMonth>();
+                int logUpdate = 0;
+                if (ver[0] == "1" && rev != lrev && lrev == "999")
+                {
+                    List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev && (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)).ToList();
+                    rev = (int.Parse(rev) + 1).ToString();
+                    List<AlSaleForecaseMonth> rSaleNow = service.GetSaleForecase(year, empcode, rev, rev);
+                    _contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleNow);
+                    int insert = _contextDBSCM.SaveChanges();
+                    if (insert > 0)
+                    {
+                        rSaleNow = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == rev).ToList();
+                        foreach (AlSaleForecaseMonth oSaleCurrent in rSaleCurrent)
+                        {
+                            int i;
+                            bool bNum = int.TryParse(oSaleCurrent.ModelCode, out i);
+                            AlSaleForecaseMonth oSaleNow = null;
+                            if (bNum == false)
+                            {
+                                oSaleNow = rSaleNow.FirstOrDefault(x => x.Ym == oSaleCurrent.Ym && x.ModelName == oSaleCurrent.ModelName && x.Customer == oSaleCurrent.Customer && x.Diameter == oSaleCurrent.Diameter && x.Pltype == oSaleCurrent.Pltype && x.Rev == rev && x.Lrev == rev);
+                                if (oSaleNow == null)
+                                {
+                                    rSaleModelNotNumberic.Add(oSaleCurrent);
+                                }
+                            }
+                            else
+                            {
+                                oSaleNow = rSaleNow.FirstOrDefault(x => x.Ym == oSaleCurrent.Ym && x.ModelCode == oSaleCurrent.ModelCode && x.ModelName == oSaleCurrent.ModelName && x.Customer == oSaleCurrent.Customer && x.Diameter == oSaleCurrent.Diameter && x.Pltype == oSaleCurrent.Pltype && x.Rev == rev && x.Lrev == rev);
+                            }
+
+                            if (oSaleNow != null)
+                            {
+                                SqlCommand strUpdate = new SqlCommand();
+                                strUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET  [D01] = @d01 ,[D02] = @d02 ,[D03] = @d03 ,[D04] = @d04 ,[D05] = @d05 ,[D06] = @d06 ,[D07] = @d07 ,[D08] = @d08 ,[D09] = @d09 ,[D10] = @d10 ,[D11] = @d11 ,[D12] = @d12 ,[D13] = @d13 ,[D14] = @d14 ,[D15] = @d15 ,[D16] = @d16 ,[D17] = @d17 ,[D18] = @d18 ,[D19] = @d19 ,[D20] = @d20 ,[D21] = @d21 ,[D22] = @d22 ,[D23] = @d23 ,[D24] = @d24 ,[D25] = @d25 ,[D26] = @d26 ,[D27] = @d27 ,[D28] = @d28 ,[D29] = @d29 ,[D30] = @d30 ,[D31] = @d31  ,[UpdateDate] = getdate()  WHERE  ID = @id";
+                                strUpdate.Parameters.Add(new SqlParameter("@id", oSaleNow.Id));
+                                strUpdate.Parameters.Add(new SqlParameter("@d01", oSaleCurrent.D01));
+                                strUpdate.Parameters.Add(new SqlParameter("@d02", oSaleCurrent.D02));
+                                strUpdate.Parameters.Add(new SqlParameter("@d03", oSaleCurrent.D03));
+                                strUpdate.Parameters.Add(new SqlParameter("@d04", oSaleCurrent.D04));
+                                strUpdate.Parameters.Add(new SqlParameter("@d05", oSaleCurrent.D05));
+                                strUpdate.Parameters.Add(new SqlParameter("@d06", oSaleCurrent.D06));
+                                strUpdate.Parameters.Add(new SqlParameter("@d07", oSaleCurrent.D07));
+                                strUpdate.Parameters.Add(new SqlParameter("@d08", oSaleCurrent.D08));
+                                strUpdate.Parameters.Add(new SqlParameter("@d09", oSaleCurrent.D09));
+                                strUpdate.Parameters.Add(new SqlParameter("@d10", oSaleCurrent.D10));
+                                strUpdate.Parameters.Add(new SqlParameter("@d11", oSaleCurrent.D11));
+                                strUpdate.Parameters.Add(new SqlParameter("@d12", oSaleCurrent.D12));
+                                strUpdate.Parameters.Add(new SqlParameter("@d13", oSaleCurrent.D13));
+                                strUpdate.Parameters.Add(new SqlParameter("@d14", oSaleCurrent.D14));
+                                strUpdate.Parameters.Add(new SqlParameter("@d15", oSaleCurrent.D15));
+                                strUpdate.Parameters.Add(new SqlParameter("@d16", oSaleCurrent.D16));
+                                strUpdate.Parameters.Add(new SqlParameter("@d17", oSaleCurrent.D17));
+                                strUpdate.Parameters.Add(new SqlParameter("@d18", oSaleCurrent.D18));
+                                strUpdate.Parameters.Add(new SqlParameter("@d19", oSaleCurrent.D19));
+                                strUpdate.Parameters.Add(new SqlParameter("@d20", oSaleCurrent.D20));
+                                strUpdate.Parameters.Add(new SqlParameter("@d21", oSaleCurrent.D21));
+                                strUpdate.Parameters.Add(new SqlParameter("@d22", oSaleCurrent.D22));
+                                strUpdate.Parameters.Add(new SqlParameter("@d23", oSaleCurrent.D23));
+                                strUpdate.Parameters.Add(new SqlParameter("@d24", oSaleCurrent.D24));
+                                strUpdate.Parameters.Add(new SqlParameter("@d25", oSaleCurrent.D25));
+                                strUpdate.Parameters.Add(new SqlParameter("@d26", oSaleCurrent.D26));
+                                strUpdate.Parameters.Add(new SqlParameter("@d27", oSaleCurrent.D27));
+                                strUpdate.Parameters.Add(new SqlParameter("@d28", oSaleCurrent.D28));
+                                strUpdate.Parameters.Add(new SqlParameter("@d29", oSaleCurrent.D29));
+                                strUpdate.Parameters.Add(new SqlParameter("@d30", oSaleCurrent.D30));
+                                strUpdate.Parameters.Add(new SqlParameter("@d31", oSaleCurrent.D31));
+                                int update = _dbSCM.ExecuteNonCommand(strUpdate);
+                                if (update > 0)
+                                {
+                                    logUpdate++;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("asdasd");
+                                }
+                            }
+                            else
+                            {
+                                rSaleDontHaveInSaleNew.Add(oSaleCurrent);
+                                if (oSaleCurrent.Diameter != "")
+                                {
+                                    Console.WriteLine("asdasd");
+                                }
+                            }
+                            //oSaleCurrent.Lrev = rev;
+                            //oSaleCurrent.UpdateDate = DateTime.Now;
+                            //_contextDBSCM.AlSaleForecaseMonths.Update(oSaleCurrent);
+                        }
+                        List<AlSaleForecaseMonth> rSalePrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999").ToList();
+                        rSalePrev.ForEach(x => x.Lrev = rev);
+                        _contextDBSCM.AlSaleForecaseMonths.UpdateRange(rSalePrev);
+                        int updatePrev = _contextDBSCM.SaveChanges();
+                        if (updatePrev > 0)
+                        {
+                            List<AlSaleForecaseMonth> rSaleEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999" && x.D01 == 0 && x.D02 == 0 && x.D03 == 0 && x.D04 == 0 && x.D05 == 0 && x.D06 == 0 && x.D07 == 0 && x.D08 == 0 && x.D09 == 0 && x.D10 == 0 && x.D11 == 0 && x.D12 == 0 && x.D13 == 0 && x.D14 == 0 && x.D15 == 0 && x.D16 == 0 && x.D17 == 0 && x.D18 == 0 && x.D19 == 0 && x.D20 == 0 && x.D21 == 0 && x.D22 == 0 && x.D23 == 0 && x.D24 == 0 && x.D25 == 0 && x.D26 == 0 && x.D27 == 0 && x.D28 == 0 && x.D29 == 0 && x.D30 == 0 && x.D31 == 0).ToList();
+                            _contextDBSCM.AlSaleForecaseMonths.RemoveRange(rSaleEmpty);
+                            int remove = _contextDBSCM.SaveChanges();
+                        }
+                    }
+
+                    //int action = 0;
+                    //int loop = 0;
+
+
+                    //int update = _contextDBSCM.SaveChanges();
+                    //if (update > 0)
+                    //{
+                    //    action += update;
+                    //}
+
+                    //_contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleNow);
+                    //int insert = _contextDBSCM.SaveChanges();
+                    //if (action > 0)
+                    //{
+                    //    List<AlSaleForecaseMonth> rSaleEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999" && x.D01 == 0 && x.D02 == 0 && x.D03 == 0 && x.D04 == 0 && x.D05 == 0 && x.D06 == 0 && x.D07 == 0 && x.D08 == 0 && x.D09 == 0 && x.D10 == 0 && x.D11 == 0 && x.D12 == 0 && x.D13 == 0 && x.D14 == 0 && x.D15 == 0 && x.D16 == 0 && x.D17 == 0 && x.D18 == 0 && x.D19 == 0 && x.D20 == 0 && x.D21 == 0 && x.D22 == 0 && x.D23 == 0 && x.D24 == 0 && x.D25 == 0 && x.D26 == 0 && x.D27 == 0 && x.D28 == 0 && x.D29 == 0 && x.D30 == 0 && x.D31 == 0).ToList();
+                    //    _contextDBSCM.AlSaleForecaseMonths.RemoveRange(rSaleEmpty);
+                    //    int remove = _contextDBSCM.SaveChanges();
+                    //}
+                    return Ok(new
+                    {
+                        status = insert,
+                        messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากข้อมูลใหม่ไม่ถูกต้องตามระบบ (year : {year}, rev : {rev}, lrev : 999)!"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากไม่พบข้อมูล (year : {year}, rev : {rev}, lrev : 999)!"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return Ok(new
+                {
+                    status = false,
+                    messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่  ({e.Message}) !"
+                });
+            }
+
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/distribution")]
+        public IActionResult DistributionSaleForecase([FromBody] MDistributionSaleForecase obj)
+        {
+            try
+            {
+                string year = obj.year;
+                string empcode = obj.empcode;
+                string[] ver = service.GetVersion(year);
+                string rev = ver[1];
+                string lrev = ver[2];
+                if (ver[0] == "1" && rev == lrev)
+                {
+                    //&& (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)
+                    List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Rev == rev && x.Lrev == lrev).ToList();
+                    foreach (AlSaleForecaseMonth oSale in rSaleCurrent)
+                    {
+                        if (oSale.D01 > 0 || oSale.D02 > 0 || oSale.D03 > 0 || oSale.D04 > 0 || oSale.D05 > 0 || oSale.D06 > 0 || oSale.D07 > 0 || oSale.D08 > 0 || oSale.D09 > 0 || oSale.D10 > 0 || oSale.D11 > 0 || oSale.D12 > 0 || oSale.D13 > 0 || oSale.D14 > 0 || oSale.D15 > 0 || oSale.D16 > 0 || oSale.D17 > 0 || oSale.D18 > 0 || oSale.D19 > 0 || oSale.D20 > 0 || oSale.D21 > 0 || oSale.D22 > 0 || oSale.D23 > 0 || oSale.D24 > 0 || oSale.D25 > 0 || oSale.D26 > 0 || oSale.D27 > 0 || oSale.D28 > 0 || oSale.D29 > 0 || oSale.D30 > 0 || oSale.D31 > 0)
+                        {
+                            oSale.Lrev = "999";
+                            oSale.UpdateDate = DateTime.Now;
+                            _contextDBSCM.AlSaleForecaseMonths.Update(oSale);
+                        }
+                        else
+                        {
+                            _contextDBSCM.AlSaleForecaseMonths.Remove(oSale);
+                        }
+                    }
+                    int update = _contextDBSCM.SaveChanges();
+                    return Ok(new
+                    {
+                        status = update,
+                        message = "ไม่สามารถเปลี่ยนแปลงเวอร์ชั่นได้ ติดต่อ IT"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        messsage = $"ไม่พบข้อมูลสำหรับ Distribution (year : {year}, rev : {rev}, lrev : {lrev}) !"
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                return Ok(new
+                {
+                    status = false,
+                    messsage = $"เกิดข้อผิดพลาด Distribution  ({e.Message}) !"
+                });
+            }
+
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/get")]
+        public IActionResult GetSalsForecase([FromBody] MGetSaleForecase obj)
+        {
+            List<AlSaleForecaseMonth> rSaleForecase = new List<AlSaleForecaseMonth>();
+            List<GstSalMdl> rDiameter = new List<GstSalMdl>();
+            string empcode = obj.empcode;
+            string yyyy = obj.year;
+            Service service = new Service(_contextDBSCM, _contextDBHRM, _contextDBBCS, _ALPHAPD, _ALPHAPD1, _ALPHAPD2);
+            string[] ver = service.GetVersion(yyyy);
+            string haveData = ver[0];
+            string rev = ver[1];
+            string lrev = ver[2];
+
+            rSaleForecase = service.GetSaleForecase(yyyy, empcode);
+            if (haveData == "0") // ไม่มีข้อมูลปีนั้นๆ ใน table
+            {
+                // สร้างข้อมูลใหม่
+                rSaleForecase = service.GetSaleForecase(yyyy, empcode);
+                _contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleForecase);
+                int insert = _contextDBSCM.SaveChanges();
+            }
+            else
+            {
+                //rSaleForecase = _contextDBSCM.AlSaleForecaseMonthDevs.Where(x => x.Ym.EndsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).Select(x => new MDataSaleForecase() { ym = x.Ym, modelCode = x.ModelCode, modelName = x.ModelName, diameter = x.Diameter, pltype = x.Pltype, d01 = x.D01, d02 = x.D02, d03 = x.D03, d04 = x.D04, d05 = x.D05, d06 = x.D06, d07 = x.D07, d08 = x.D08, d09 = x.D09, d10 = x.D10, d11 = x.D11, d12 = x.D12, d13 = x.D13, d14 = x.D14, d15 = x.D15, d16 = x.D16, d17 = x.D17, d18 = x.D18, d19 = x.D19, d20 = x.D20, d21 = x.D21, d22 = x.D22, d23 = x.D23, d24 = x.D24, d25 = x.D25, d26 = x.D26, d27 = x.D27, d28 = x.D28, d29 = x.D29, d30 = x.D30, d31 = x.D31 }).OrderBy(x => x.ym).ToList();
+                rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).OrderBy(x => x.ModelName).ThenBy(x=>x.Diameter).ToList();
+            }
+            return Ok(new
+            {
+                status = lrev,
+                data = rSaleForecase.OrderBy(x => x.Ym)
+            });
+        }
+
+
+        [HttpGet]
+        [Route("/saleforecase/get/filter/{column}/{year}")]
+        public IActionResult GetFilterSaleForecase(string column, string year)
+        {
+            column = Uri.UnescapeDataString(column);
+            List<MChoose> rChoose = new List<MChoose>();
+            if (column == "MM/YYYY")
+            {
+                for (int i = 1; i <= 12; i++)
+                {
+                    string month = i.ToString("D2");
+                    rChoose.Add(new MChoose() { key = $"{year}{month}", value = $"{month}/{year}" });
+                }
+            }
+            else if (column == "CUSTOMER")
+            {
+                rChoose = _contextDBSCM.AlCustomers.Select(x => new MChoose() { key = x.CustomerNameShort, value = x.CustomerNameShort }).OrderBy(x => x.key).ToList();
+            }
+            else if (column == "MODEL NAME")
+            {
+                rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.Model, value = x.ModelCode }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+            }
+            else if (column == "MODEL CODE")
+            {
+                rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.ModelCode, value = x.Model }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+            }
+            else if (column == "DIAMETER")
+            {
+                List<GstSalMdl> rDiameter = service.GetListDiameter(_ALPHAPD1);
+                rChoose = rDiameter.Where(x => x.sku != "").GroupBy(o => o.sku).Select(x => new MChoose() { key = x.Key, value = x.Key }).ToList();
+            }
+            else if (column == "PLTYPE")
+            {
+                rChoose = _contextDBSCM.AlPalletTypeMappings.GroupBy(x => new MChoose() { key = x.Pltype, value = x.Pltype }).Select(x => new MChoose() { key = x.Key.key, value = x.Key.value }).ToList();
+            }
+            return Ok(rChoose);
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/update")]
+        public IActionResult UpdateSaleforecase([FromBody] ModelUpdateSale obj)
+        {
+            string empcode = obj.empcode;
+            string yyyy = obj.year;
+            int action = 0;
+            string[] rVer = service.GetVersion(yyyy);
+            string rev = null;
+            string lrev = null;
+            if (rVer[0] == "1")
+            {
+                rev = rVer[1];
+                lrev = rVer[2];
+            }
+            List<MDataSaleForecase> rSaleUpdate = obj.sales;
+            List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(obj.year) && x.Rev == rev && x.Lrev == lrev).ToList();
+            foreach (MDataSaleForecase oSale in rSaleUpdate)
+            {
+                AlSaleForecaseMonth mSaleDev = rSaleCurrent.FirstOrDefault(x => x.Ym == oSale.ym && x.Diameter == oSale.diameter && x.ModelCode == oSale.modelCode && x.ModelName == oSale.modelName && x.Sebango == oSale.modelCode && x.Pltype == oSale.pltype && x.Customer == oSale.customer);
+                if (mSaleDev != null)
+                {
+                    mSaleDev.Ym = oSale.ym;
+                    mSaleDev.Diameter = oSale.diameter;
+                    mSaleDev.ModelCode = oSale.modelCode;
+                    mSaleDev.ModelName = oSale.modelName;
+                    mSaleDev.Sebango = oSale.modelCode;
+                    mSaleDev.Pltype = oSale.pltype;
+                    mSaleDev.Customer = oSale.customer;
+                    mSaleDev.D01 = oSale.d01;
+                    mSaleDev.D02 = oSale.d02;
+                    mSaleDev.D03 = oSale.d03;
+                    mSaleDev.D04 = oSale.d04;
+                    mSaleDev.D05 = oSale.d05;
+                    mSaleDev.D06 = oSale.d06;
+                    mSaleDev.D07 = oSale.d07;
+                    mSaleDev.D08 = oSale.d08;
+                    mSaleDev.D09 = oSale.d09;
+                    mSaleDev.D10 = oSale.d10;
+                    mSaleDev.D11 = oSale.d11;
+                    mSaleDev.D12 = oSale.d12;
+                    mSaleDev.D13 = oSale.d13;
+                    mSaleDev.D14 = oSale.d14;
+                    mSaleDev.D15 = oSale.d15;
+                    mSaleDev.D16 = oSale.d16;
+                    mSaleDev.D17 = oSale.d17;
+                    mSaleDev.D18 = oSale.d18;
+                    mSaleDev.D19 = oSale.d19;
+                    mSaleDev.D20 = oSale.d20;
+                    mSaleDev.D21 = oSale.d21;
+                    mSaleDev.D22 = oSale.d22;
+                    mSaleDev.D23 = oSale.d23;
+                    mSaleDev.D24 = oSale.d24;
+                    mSaleDev.D25 = oSale.d25;
+                    mSaleDev.D26 = oSale.d26;
+                    mSaleDev.D27 = oSale.d27;
+                    mSaleDev.D28 = oSale.d28;
+                    mSaleDev.D29 = oSale.d29;
+                    mSaleDev.D30 = oSale.d30;
+                    mSaleDev.D31 = oSale.d31;
+                    mSaleDev.CreateBy = empcode;
+                    mSaleDev.UpdateDate = DateTime.Now;
+                    _contextDBSCM.AlSaleForecaseMonths.Update(mSaleDev);
+                }
+            }
+            string message = "";
+            action = _contextDBSCM.SaveChanges();
+            return Ok(new
+            {
+                status = action > 0 ? true : false,
+                action = action,
+                message = message
+            });
+        }
+
+
+
+        [HttpPost]
+        [Route("/saleforecase/diameter")]
+        public IActionResult UpdateDiameter()
+        {
+            List<AlSaleForecaseMonth> rCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => (x.Diameter == null || x.Diameter == "") && x.Rev == "9" && x.Lrev == "999").ToList();
+            List<GstSalMdl> rDiameter = service.GetListDiameter(_ALPHAPD1);
+            foreach (AlSaleForecaseMonth item in rCurrent)
+            {
+                GstSalMdl oDiameter = rDiameter.FirstOrDefault(x => x.modelName == item.ModelName);
+                if (oDiameter != null)
+                {
+                    string diameter = oDiameter.sku;
+                    item.Diameter = diameter;
+                    _contextDBSCM.AlSaleForecaseMonths.Update(item);
+                }
+                else
+                {
+
+                }
+            }
+            _contextDBSCM.SaveChanges();
+            return Ok();
+        }
     }
 
 }
