@@ -72,3 +72,5 @@ D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\runtimes\unix\
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\Newtonsoft.Json.dll
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\bin\Release\net6.0\config.txt

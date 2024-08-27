@@ -4,5 +4,6 @@
     {
         public string year { get;set; } 
         public string empcode { get; set; }
+        public bool dev { get; set; } = false;
     }
 }

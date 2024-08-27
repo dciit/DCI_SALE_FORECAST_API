@@ -84,6 +84,11 @@ namespace api_sale_planning
             return rDiameter;
         }
 
+        internal void GetMasterSale()
+        {
+
+        }
+
         internal string[] GetVersion(string yyyy)
         {
             string[] ver = new string[3];  //  1 = HAVE DATA, 2 = REV, 3 = LREV
@@ -109,35 +114,58 @@ namespace api_sale_planning
         {
             List<AlSaleForecaseMonth> rSaleForecase = new List<AlSaleForecaseMonth>();
             List<GstSalMdl> rDiameter = GetListDiameter(_ALPHAPD1);
-            string test = "1Yasdasda";
-            string cut = test.Substring(1, 1);
-            //List<PnCompressor> rModel = contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE").ToList();
-            var rModel = _EF_SCM.AlSaleForecaseMonths.Where(x =>  x.ModelCode != "" && x.ModelCode != "-" && x.ModelCode != "#REF!" && x.ModelName != "" && x.Customer != "" && EF.Functions.IsNumeric(x.ModelCode) && x.ModelName.Substring(0, 2) != "3P" && x.ModelName.Substring(0, 2) != "4P").GroupBy(y => new
+            int numMonth = 1;
+            List<DictMstr> ListModelOfCustomer = _EF_SCM.DictMstrs.Where(x => x.DictSystem == "SALEFC" && x.DictType == "CUST_PL" && x.DictStatus == "ACTIVE").ToList();
+            List<WMS_MDW27_MODEL_MASTER> rMDW27 = new List<WMS_MDW27_MODEL_MASTER>();
+            SqlCommand sqlGetMDW27ModelMaster = new SqlCommand();
+            sqlGetMDW27ModelMaster.CommandText = @" select mstr.code as CUSTOMER,mdw27.MODEL,mdw27.SEBANGO AS SEBANGO,mdw27.PLTYPE,mdw27.DIAMETER from [dbSCM].[dbo].[DictMstr] mstr 
+  left join [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER] mdw27 on mstr.REF_CODE = mdw27.MODEL  
+  where  mdw27.ACTIVE = 'ACTIVE' AND DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_MODEL'
+  group by mstr.code,mdw27.MODEL,mdw27.SEBANGO,mdw27.PLTYPE,mdw27.DIAMETER
+  order by mstr.code asc,mdw27.MODEL";
+            DataTable dt = _dbSCM.Query(sqlGetMDW27ModelMaster);
+            foreach (DataRow dr in dt.Rows)
             {
-                modelCode = y.ModelCode,
-                modelName = y.ModelName,
-                customer = y.Customer,
-                pltype = y.Pltype
-            }).Select(z => new
-            {
-                z.Key.modelCode,
-                z.Key.modelName,
-                z.Key.customer,
-                z.Key.pltype
-            }).ToList();
-            foreach (var oModel in rModel)
-            {
-                GstSalMdl oDiameter = rDiameter.FirstOrDefault(x => x.modelName.Trim() == oModel.modelName);
-                for (int i = 1; i <= 12; i++)
+                string model = dr["MODEL"].ToString();
+                string pltype = dr["PLTYPE"].ToString();
+                if (dr["CUSTOMER"].ToString() == "DAP")
                 {
-                    string mmyyyy = $"{i.ToString("D2")}/{yyyy}";
+                    List<string> ModelOfCustomer = ListModelOfCustomer.Where(x => x.Code == "DAP" && x.RefCode == model).Select(x=>x.Ref1).ToList();
+                    if (ModelOfCustomer.Count > 0 && ModelOfCustomer.Contains(pltype) == true)
+                    {
+                        WMS_MDW27_MODEL_MASTER oMdw27 = new WMS_MDW27_MODEL_MASTER();
+                        oMdw27.customer = dr["CUSTOMER"].ToString();
+                        oMdw27.model = model;
+                        oMdw27.sebango = dr["SEBANGO"].ToString();
+                        oMdw27.pltype = pltype;
+                        oMdw27.diameter = dr["DIAMETER"].ToString();
+                        rMDW27.Add(oMdw27);
+                    }
+                }
+                else
+                {
+                    WMS_MDW27_MODEL_MASTER oMdw27 = new WMS_MDW27_MODEL_MASTER();
+                    oMdw27.customer = dr["CUSTOMER"].ToString();
+                    oMdw27.model = dr["MODEL"].ToString();
+                    oMdw27.sebango = dr["SEBANGO"].ToString();
+                    oMdw27.pltype = pltype;
+                    oMdw27.diameter = dr["DIAMETER"].ToString();
+                    rMDW27.Add(oMdw27);
+                }
+            }
+            while (numMonth <= 12)
+            {
+                foreach (WMS_MDW27_MODEL_MASTER oMdw27 in rMDW27)
+                {
+                    GstSalMdl oDiameter = rDiameter.FirstOrDefault(x => x.modelName.Trim() == oMdw27.model);
+                    string mmyyyy = $"{numMonth.ToString("D2")}/{yyyy}";
                     AlSaleForecaseMonth mSale = new AlSaleForecaseMonth();
-                    mSale.Ym = $"{yyyy}{i.ToString("D2")}";
-                    mSale.Customer = oModel.customer;
-                    mSale.ModelName = oModel.modelName;
-                    mSale.ModelCode = oModel.modelCode;
-                    mSale.Sebango = oModel.modelCode;
-                    mSale.Pltype = oModel.pltype;
+                    mSale.Ym = $"{yyyy}{numMonth.ToString("D2")}";
+                    mSale.Customer = oMdw27.customer;
+                    mSale.ModelName = oMdw27.model;
+                    mSale.ModelCode = oMdw27.sebango;
+                    mSale.Sebango = oMdw27.sebango;
+                    mSale.Pltype = oMdw27.pltype;
                     mSale.Diameter = oDiameter != null ? oDiameter.sku : "";
                     mSale.Rev = rev != null ? rev : "1";
                     mSale.Lrev = lrev != null ? lrev : "1";
@@ -146,6 +174,7 @@ namespace api_sale_planning
                     mSale.UpdateDate = DateTime.Now;
                     rSaleForecase.Add(mSale);
                 }
+                numMonth++;
             }
             return rSaleForecase;
         }

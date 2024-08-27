@@ -1,3 +1,4 @@
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\config.txt
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\DCI_SALE_FORCAST_API.exe
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\appsettings.Development.json
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\appsettings.json
@@ -17,6 +18,7 @@ D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Mic
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.IdentityModel.Tokens.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.OpenApi.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Microsoft.Win32.SystemEvents.dll
+D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Newtonsoft.Json.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Oracle.ManagedDataAccess.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.Swagger.dll
 D:\git\DCI_SALE_FORECAST_API\api-sale-planning\obj\Release\net6.0\PubTmp\Out\Swashbuckle.AspNetCore.SwaggerGen.dll

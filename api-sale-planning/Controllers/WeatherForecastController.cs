@@ -1,9 +1,12 @@
+using API_DCI_DIAGRAM_SVG.Contexts;
 using api_sale_planning.Contexts;
 using api_sale_planning.Models;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -13,10 +16,12 @@ using System.Linq;
 
 namespace api_sale_planning.Controllers
 {
+    /* A003 (20240604) : เปลี่ยน master saleforecase จากนำข้อมูลเดิมให้ไปใช้ DBSCM => WMS_MDW27_MODEL_MASTER*/
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
+        public ClsHelper oHelp = new ClsHelper();
         private ConnectDB _dbSCM = new ConnectDB("DBSCM");
         private readonly DBSCM _contextDBSCM;
         private readonly DBHRM _contextDBHRM;
@@ -928,8 +933,7 @@ namespace api_sale_planning.Controllers
                 string lrev = ver[2];
                 List<AlSaleForecaseMonth> rSaleModelNotNumberic = new List<AlSaleForecaseMonth>();
                 List<AlSaleForecaseMonth> rSaleDontHaveInSaleNew = new List<AlSaleForecaseMonth>();
-                int logUpdate = 0;
-                if (ver[0] == "1" && rev != lrev && lrev == "999")
+                if (ver[0] == "1" && rev != lrev && lrev == "999" || obj.dev == true)
                 {
                     List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev && (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)).ToList();
                     rev = (int.Parse(rev) + 1).ToString();
@@ -954,7 +958,7 @@ namespace api_sale_planning.Controllers
                             }
                             else
                             {
-                                oSaleNow = rSaleNow.FirstOrDefault(x => x.Ym == oSaleCurrent.Ym && x.ModelCode == oSaleCurrent.ModelCode && x.ModelName == oSaleCurrent.ModelName && x.Customer == oSaleCurrent.Customer && x.Diameter == oSaleCurrent.Diameter && x.Pltype == oSaleCurrent.Pltype && x.Rev == rev && x.Lrev == rev);
+                                oSaleNow = rSaleNow.FirstOrDefault(x => x.Ym == oSaleCurrent.Ym && x.ModelName == oSaleCurrent.ModelName && x.Customer == oSaleCurrent.Customer && x.Diameter == oSaleCurrent.Diameter && x.Pltype == oSaleCurrent.Pltype && x.Rev == rev && x.Lrev == rev && x.ModelCode == oSaleCurrent.ModelCode);
                             }
 
                             if (oSaleNow != null)
@@ -962,46 +966,38 @@ namespace api_sale_planning.Controllers
                                 SqlCommand strUpdate = new SqlCommand();
                                 strUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET  [D01] = @d01 ,[D02] = @d02 ,[D03] = @d03 ,[D04] = @d04 ,[D05] = @d05 ,[D06] = @d06 ,[D07] = @d07 ,[D08] = @d08 ,[D09] = @d09 ,[D10] = @d10 ,[D11] = @d11 ,[D12] = @d12 ,[D13] = @d13 ,[D14] = @d14 ,[D15] = @d15 ,[D16] = @d16 ,[D17] = @d17 ,[D18] = @d18 ,[D19] = @d19 ,[D20] = @d20 ,[D21] = @d21 ,[D22] = @d22 ,[D23] = @d23 ,[D24] = @d24 ,[D25] = @d25 ,[D26] = @d26 ,[D27] = @d27 ,[D28] = @d28 ,[D29] = @d29 ,[D30] = @d30 ,[D31] = @d31  ,[UpdateDate] = getdate()  WHERE  ID = @id";
                                 strUpdate.Parameters.Add(new SqlParameter("@id", oSaleNow.Id));
-                                strUpdate.Parameters.Add(new SqlParameter("@d01", oSaleCurrent.D01));
-                                strUpdate.Parameters.Add(new SqlParameter("@d02", oSaleCurrent.D02));
-                                strUpdate.Parameters.Add(new SqlParameter("@d03", oSaleCurrent.D03));
-                                strUpdate.Parameters.Add(new SqlParameter("@d04", oSaleCurrent.D04));
-                                strUpdate.Parameters.Add(new SqlParameter("@d05", oSaleCurrent.D05));
-                                strUpdate.Parameters.Add(new SqlParameter("@d06", oSaleCurrent.D06));
-                                strUpdate.Parameters.Add(new SqlParameter("@d07", oSaleCurrent.D07));
-                                strUpdate.Parameters.Add(new SqlParameter("@d08", oSaleCurrent.D08));
-                                strUpdate.Parameters.Add(new SqlParameter("@d09", oSaleCurrent.D09));
-                                strUpdate.Parameters.Add(new SqlParameter("@d10", oSaleCurrent.D10));
-                                strUpdate.Parameters.Add(new SqlParameter("@d11", oSaleCurrent.D11));
-                                strUpdate.Parameters.Add(new SqlParameter("@d12", oSaleCurrent.D12));
-                                strUpdate.Parameters.Add(new SqlParameter("@d13", oSaleCurrent.D13));
-                                strUpdate.Parameters.Add(new SqlParameter("@d14", oSaleCurrent.D14));
-                                strUpdate.Parameters.Add(new SqlParameter("@d15", oSaleCurrent.D15));
-                                strUpdate.Parameters.Add(new SqlParameter("@d16", oSaleCurrent.D16));
-                                strUpdate.Parameters.Add(new SqlParameter("@d17", oSaleCurrent.D17));
-                                strUpdate.Parameters.Add(new SqlParameter("@d18", oSaleCurrent.D18));
-                                strUpdate.Parameters.Add(new SqlParameter("@d19", oSaleCurrent.D19));
-                                strUpdate.Parameters.Add(new SqlParameter("@d20", oSaleCurrent.D20));
-                                strUpdate.Parameters.Add(new SqlParameter("@d21", oSaleCurrent.D21));
-                                strUpdate.Parameters.Add(new SqlParameter("@d22", oSaleCurrent.D22));
-                                strUpdate.Parameters.Add(new SqlParameter("@d23", oSaleCurrent.D23));
-                                strUpdate.Parameters.Add(new SqlParameter("@d24", oSaleCurrent.D24));
-                                strUpdate.Parameters.Add(new SqlParameter("@d25", oSaleCurrent.D25));
-                                strUpdate.Parameters.Add(new SqlParameter("@d26", oSaleCurrent.D26));
-                                strUpdate.Parameters.Add(new SqlParameter("@d27", oSaleCurrent.D27));
-                                strUpdate.Parameters.Add(new SqlParameter("@d28", oSaleCurrent.D28));
-                                strUpdate.Parameters.Add(new SqlParameter("@d29", oSaleCurrent.D29));
-                                strUpdate.Parameters.Add(new SqlParameter("@d30", oSaleCurrent.D30));
-                                strUpdate.Parameters.Add(new SqlParameter("@d31", oSaleCurrent.D31));
+                                strUpdate.Parameters.Add(new SqlParameter("@d01", oSaleCurrent.D01 != null ? oSaleCurrent.D01 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d02", oSaleCurrent.D02 != null ? oSaleCurrent.D02 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d03", oSaleCurrent.D03 != null ? oSaleCurrent.D03 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d04", oSaleCurrent.D04 != null ? oSaleCurrent.D04 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d05", oSaleCurrent.D05 != null ? oSaleCurrent.D05 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d06", oSaleCurrent.D06 != null ? oSaleCurrent.D06 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d07", oSaleCurrent.D07 != null ? oSaleCurrent.D07 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d08", oSaleCurrent.D08 != null ? oSaleCurrent.D08 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d09", oSaleCurrent.D09 != null ? oSaleCurrent.D09 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d10", oSaleCurrent.D10 != null ? oSaleCurrent.D10 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d11", oSaleCurrent.D11 != null ? oSaleCurrent.D11 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d12", oSaleCurrent.D12 != null ? oSaleCurrent.D12 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d13", oSaleCurrent.D13 != null ? oSaleCurrent.D13 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d14", oSaleCurrent.D14 != null ? oSaleCurrent.D14 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d15", oSaleCurrent.D15 != null ? oSaleCurrent.D15 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d16", oSaleCurrent.D16 != null ? oSaleCurrent.D16 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d17", oSaleCurrent.D17 != null ? oSaleCurrent.D17 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d18", oSaleCurrent.D18 != null ? oSaleCurrent.D18 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d19", oSaleCurrent.D19 != null ? oSaleCurrent.D19 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d20", oSaleCurrent.D20 != null ? oSaleCurrent.D20 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d21", oSaleCurrent.D21 != null ? oSaleCurrent.D21 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d22", oSaleCurrent.D22 != null ? oSaleCurrent.D22 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d23", oSaleCurrent.D23 != null ? oSaleCurrent.D23 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d24", oSaleCurrent.D24 != null ? oSaleCurrent.D24 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d25", oSaleCurrent.D25 != null ? oSaleCurrent.D25 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d26", oSaleCurrent.D26 != null ? oSaleCurrent.D26 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d27", oSaleCurrent.D27 != null ? oSaleCurrent.D27 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d28", oSaleCurrent.D28 != null ? oSaleCurrent.D28 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d29", oSaleCurrent.D29 != null ? oSaleCurrent.D29 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d30", oSaleCurrent.D30 != null ? oSaleCurrent.D30 : 0));
+                                strUpdate.Parameters.Add(new SqlParameter("@d31", oSaleCurrent.D31 != null ? oSaleCurrent.D31 : 0));
                                 int update = _dbSCM.ExecuteNonCommand(strUpdate);
-                                if (update > 0)
-                                {
-                                    logUpdate++;
-                                }
-                                else
-                                {
-                                    Console.WriteLine("asdasd");
-                                }
                             }
                             else
                             {
@@ -1011,52 +1007,33 @@ namespace api_sale_planning.Controllers
                                     Console.WriteLine("asdasd");
                                 }
                             }
-                            //oSaleCurrent.Lrev = rev;
-                            //oSaleCurrent.UpdateDate = DateTime.Now;
-                            //_contextDBSCM.AlSaleForecaseMonths.Update(oSaleCurrent);
                         }
                         List<AlSaleForecaseMonth> rSalePrev = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999").ToList();
                         rSalePrev.ForEach(x => x.Lrev = rev);
                         _contextDBSCM.AlSaleForecaseMonths.UpdateRange(rSalePrev);
                         int updatePrev = _contextDBSCM.SaveChanges();
-                        if (updatePrev > 0)
+                        return Ok(new
                         {
-                            List<AlSaleForecaseMonth> rSaleEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999" && x.D01 == 0 && x.D02 == 0 && x.D03 == 0 && x.D04 == 0 && x.D05 == 0 && x.D06 == 0 && x.D07 == 0 && x.D08 == 0 && x.D09 == 0 && x.D10 == 0 && x.D11 == 0 && x.D12 == 0 && x.D13 == 0 && x.D14 == 0 && x.D15 == 0 && x.D16 == 0 && x.D17 == 0 && x.D18 == 0 && x.D19 == 0 && x.D20 == 0 && x.D21 == 0 && x.D22 == 0 && x.D23 == 0 && x.D24 == 0 && x.D25 == 0 && x.D26 == 0 && x.D27 == 0 && x.D28 == 0 && x.D29 == 0 && x.D30 == 0 && x.D31 == 0).ToList();
-                            _contextDBSCM.AlSaleForecaseMonths.RemoveRange(rSaleEmpty);
-                            int remove = _contextDBSCM.SaveChanges();
-                        }
+                            status = updatePrev > 0 ? true : false,
+                            messsage = $"[E001] เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากข้อมูลใหม่ไม่ถูกต้องตามระบบ (year : {year}, rev : {rev}, lrev : 999)!"
+                        });
                     }
-
-                    //int action = 0;
-                    //int loop = 0;
-
-
-                    //int update = _contextDBSCM.SaveChanges();
-                    //if (update > 0)
-                    //{
-                    //    action += update;
-                    //}
-
-                    //_contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleNow);
-                    //int insert = _contextDBSCM.SaveChanges();
-                    //if (action > 0)
-                    //{
-                    //    List<AlSaleForecaseMonth> rSaleEmpty = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == (Convert.ToInt32(rev) - 1).ToString() && x.Lrev == "999" && x.D01 == 0 && x.D02 == 0 && x.D03 == 0 && x.D04 == 0 && x.D05 == 0 && x.D06 == 0 && x.D07 == 0 && x.D08 == 0 && x.D09 == 0 && x.D10 == 0 && x.D11 == 0 && x.D12 == 0 && x.D13 == 0 && x.D14 == 0 && x.D15 == 0 && x.D16 == 0 && x.D17 == 0 && x.D18 == 0 && x.D19 == 0 && x.D20 == 0 && x.D21 == 0 && x.D22 == 0 && x.D23 == 0 && x.D24 == 0 && x.D25 == 0 && x.D26 == 0 && x.D27 == 0 && x.D28 == 0 && x.D29 == 0 && x.D30 == 0 && x.D31 == 0).ToList();
-                    //    _contextDBSCM.AlSaleForecaseMonths.RemoveRange(rSaleEmpty);
-                    //    int remove = _contextDBSCM.SaveChanges();
-                    //}
-                    return Ok(new
+                    else
                     {
-                        status = insert,
-                        messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากข้อมูลใหม่ไม่ถูกต้องตามระบบ (year : {year}, rev : {rev}, lrev : 999)!"
-                    });
+                        return Ok(new
+                        {
+                            status = false,
+                            messsage = $"[E002] เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากข้อมูลใหม่ไม่ถูกต้องตามระบบ (year : {year}, rev : {rev}, lrev : 999)!"
+                        });
+
+                    }
                 }
                 else
                 {
                     return Ok(new
                     {
                         status = false,
-                        messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากไม่พบข้อมูล (year : {year}, rev : {rev}, lrev : 999)!"
+                        messsage = $"[E003] เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่ เนื่องจากไม่พบข้อมูล (year : {year}, rev : {rev}, lrev : 999)!"
                     });
                 }
             }
@@ -1065,7 +1042,7 @@ namespace api_sale_planning.Controllers
                 return Ok(new
                 {
                     status = false,
-                    messsage = $"เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่  ({e.Message}) !"
+                    messsage = $"[E004] เกิดข้อผิดพลาดระหว่างการสร้างข้อมูลใหม่  ({e.Message}) !"
                 });
             }
 
@@ -1077,6 +1054,8 @@ namespace api_sale_planning.Controllers
         {
             try
             {
+                int count = 0;
+                int remove = 0;
                 string year = obj.year;
                 string empcode = obj.empcode;
                 string[] ver = service.GetVersion(year);
@@ -1084,8 +1063,7 @@ namespace api_sale_planning.Controllers
                 string lrev = ver[2];
                 if (ver[0] == "1" && rev == lrev)
                 {
-                    //&& (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)
-                    List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Rev == rev && x.Lrev == lrev).ToList();
+                    List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev).ToList();
                     foreach (AlSaleForecaseMonth oSale in rSaleCurrent)
                     {
                         if (oSale.D01 > 0 || oSale.D02 > 0 || oSale.D03 > 0 || oSale.D04 > 0 || oSale.D05 > 0 || oSale.D06 > 0 || oSale.D07 > 0 || oSale.D08 > 0 || oSale.D09 > 0 || oSale.D10 > 0 || oSale.D11 > 0 || oSale.D12 > 0 || oSale.D13 > 0 || oSale.D14 > 0 || oSale.D15 > 0 || oSale.D16 > 0 || oSale.D17 > 0 || oSale.D18 > 0 || oSale.D19 > 0 || oSale.D20 > 0 || oSale.D21 > 0 || oSale.D22 > 0 || oSale.D23 > 0 || oSale.D24 > 0 || oSale.D25 > 0 || oSale.D26 > 0 || oSale.D27 > 0 || oSale.D28 > 0 || oSale.D29 > 0 || oSale.D30 > 0 || oSale.D31 > 0)
@@ -1093,10 +1071,12 @@ namespace api_sale_planning.Controllers
                             oSale.Lrev = "999";
                             oSale.UpdateDate = DateTime.Now;
                             _contextDBSCM.AlSaleForecaseMonths.Update(oSale);
+                            count++;
                         }
                         else
                         {
                             _contextDBSCM.AlSaleForecaseMonths.Remove(oSale);
+                            remove++;
                         }
                     }
                     int update = _contextDBSCM.SaveChanges();
@@ -1139,8 +1119,6 @@ namespace api_sale_planning.Controllers
             string haveData = ver[0];
             string rev = ver[1];
             string lrev = ver[2];
-
-            rSaleForecase = service.GetSaleForecase(yyyy, empcode);
             if (haveData == "0") // ไม่มีข้อมูลปีนั้นๆ ใน table
             {
                 // สร้างข้อมูลใหม่
@@ -1151,7 +1129,7 @@ namespace api_sale_planning.Controllers
             else
             {
                 //rSaleForecase = _contextDBSCM.AlSaleForecaseMonthDevs.Where(x => x.Ym.EndsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).Select(x => new MDataSaleForecase() { ym = x.Ym, modelCode = x.ModelCode, modelName = x.ModelName, diameter = x.Diameter, pltype = x.Pltype, d01 = x.D01, d02 = x.D02, d03 = x.D03, d04 = x.D04, d05 = x.D05, d06 = x.D06, d07 = x.D07, d08 = x.D08, d09 = x.D09, d10 = x.D10, d11 = x.D11, d12 = x.D12, d13 = x.D13, d14 = x.D14, d15 = x.D15, d16 = x.D16, d17 = x.D17, d18 = x.D18, d19 = x.D19, d20 = x.D20, d21 = x.D21, d22 = x.D22, d23 = x.D23, d24 = x.D24, d25 = x.D25, d26 = x.D26, d27 = x.D27, d28 = x.D28, d29 = x.D29, d30 = x.D30, d31 = x.D31 }).OrderBy(x => x.ym).ToList();
-                rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).OrderBy(x => x.ModelName).ThenBy(x=>x.Diameter).ToList();
+                rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).OrderBy(x => x.Customer).ThenBy(x => x.ModelName).ThenBy(x => x.Diameter).ToList();
             }
             return Ok(new
             {
@@ -1181,11 +1159,35 @@ namespace api_sale_planning.Controllers
             }
             else if (column == "MODEL NAME")
             {
-                rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.Model, value = x.ModelCode }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+                //rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.Model, value = x.ModelCode }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+                SqlCommand sql = new SqlCommand();
+                sql.CommandText = @"SELECT   [MODEL]   ,[SEBANGO] 
+  FROM [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER] 
+  group by  [MODEL]  ,[SEBANGO] ";
+                DataTable dt = _dbSCM.Query(sql);
+                foreach (DataRow dr in dt.Rows)
+                {
+                    MChoose oChoose = new MChoose();
+                    oChoose.key = dr["MODEL"].ToString();
+                    oChoose.value = $"{dr["MODEL"].ToString()} ({dr["SEBANGO"].ToString()})";
+                    rChoose.Add(oChoose);
+                }
             }
             else if (column == "MODEL CODE")
             {
-                rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.ModelCode, value = x.Model }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+                //rChoose = _contextDBSCM.PnCompressors.Where(x => x.Status == "ACTIVE" && x.ModelCode != "SPECIAL" && x.ModelCode != "PACK" && x.ModelCode != "BMC" && x.ModelCode != "BMLSTATOR" && x.ModelCode != "BMSSTATOR" && x.ModelCode != "BMLROTOR" && x.ModelCode != "BMSROTOR").GroupBy(x => new MChoose() { key = x.ModelCode, value = x.Model }).Select(x => new MChoose() { key = x.Key.key, value = $"{x.Key.key} ({x.Key.value})" }).ToList();
+                SqlCommand sql = new SqlCommand();
+                sql.CommandText = @"SELECT   [MODEL]   ,[SEBANGO] 
+  FROM [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER] 
+  group by  [MODEL]  ,[SEBANGO] ";
+                DataTable dt = _dbSCM.Query(sql);
+                foreach (DataRow dr in dt.Rows)
+                {
+                    MChoose oChoose = new MChoose();
+                    oChoose.key = dr["SEBANGO"].ToString();
+                    oChoose.value = $"{dr["SEBANGO"].ToString()} ({dr["MODEL"].ToString()})";
+                    rChoose.Add(oChoose);
+                }
             }
             else if (column == "DIAMETER")
             {
@@ -1299,6 +1301,285 @@ namespace api_sale_planning.Controllers
             _contextDBSCM.SaveChanges();
             return Ok();
         }
-    }
 
+
+        [HttpGet]
+        [Route("/getCustomerSetting")]
+        public IActionResult GetCustomers()
+        {
+            List<string> rDict = new List<string>();
+            SqlCommand sqlGetCustomer = new SqlCommand();
+            sqlGetCustomer.CommandText = @"SELECT  distinct code FROM [dbSCM].[dbo].[DictMstr]  where dict_type = 'CUST_MODEL' and dict_status = 'active' order by code asc ";
+            DataTable dt = _dbSCM.Query(sqlGetCustomer);
+            foreach (DataRow dr in dt.Rows)
+            {
+                rDict.Add(dr["code"].ToString());
+            }
+            return Ok(rDict);
+        }
+
+        [HttpGet]
+        [Route("/getModelByCustomerCode/{customercode}")]
+        public IActionResult GetModelOfCustomer(string customercode = "")
+        {
+            List<DictMstr> rDict = new List<DictMstr>();
+            SqlCommand sql = new SqlCommand();
+            sql.CommandText = @" SELECT  DICT_ID  ,[CODE]  ,[REF_CODE] FROM [dbSCM].[dbo].[DictMstr] where dict_system = 'SALEFC' and dict_type = 'CUST_MODEL' and dict_status = 'active' and code = @CUSTOMERCODE
+  order by update_date desc ";
+            sql.Parameters.Add(new SqlParameter("@CUSTOMERCODE", customercode));
+            DataTable dt = _dbSCM.Query(sql);
+            foreach (DataRow dr in dt.Rows)
+            {
+                DictMstr oCustomer = new DictMstr();
+                oCustomer.DictId = oHelp.ConvStr2Int(dr["DICT_ID"].ToString());
+                oCustomer.Code = dr["CODE"].ToString();
+                oCustomer.RefCode = dr["REF_CODE"].ToString();
+                rDict.Add(oCustomer);
+            }
+            return Ok(rDict);
+        }
+        [HttpGet]
+        [Route("/saleforecase/customersetting/getmodel")]
+        public IActionResult GetModels()
+        {
+            List<string> rDict = new List<string>();
+            SqlCommand sql = new SqlCommand();
+            sql.CommandText = @" SELECT distinct model  as code 
+  FROM [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER]
+  order by model asc";
+            DataTable dt = _dbSCM.Query(sql);
+            foreach (DataRow dr in dt.Rows)
+            {
+                rDict.Add(service.RemoveLineEndings(dr["code"].ToString()));
+            }
+            return Ok(rDict);
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/customersetting/addmodeltocustomer")]
+        public IActionResult AddModelToCustomer([FromBody] DictMstr obj)
+        {
+            bool status = false;
+            string message = "";
+            SqlCommand sqlExist = new SqlCommand();
+            sqlExist.CommandText = @"SELECT DICT_ID FROM [dbSCM].[dbo].[DictMstr] WHERE dict_system = 'SALEFC' and dict_type = 'CUST_MODEL' and code = @CODE and ref_code = @MODEL";
+            sqlExist.Parameters.Add(new SqlParameter("@CODE", obj.Code));
+            sqlExist.Parameters.Add(new SqlParameter("@MODEL", obj.RefCode));
+            DataTable dt = _dbSCM.Query(sqlExist);
+            if (dt.Rows.Count == 0)
+            {
+                SqlCommand sql = new SqlCommand();
+                sql.CommandText = @"INSERT INTO [dbo].[DictMstr]
+           ([DICT_SYSTEM]
+           ,[DICT_TYPE]
+           ,[CODE]
+           ,[DESCRIPTION]
+           ,[REF_CODE]
+           ,[NOTE]
+           ,[CREATE_DATE]
+           ,[UPDATE_DATE]
+           ,[DICT_STATUS])
+     VALUES
+           (@DICT_SYSTEM,@DICT_TYPE,@CODE ,'',@REF_CODE,'',GETDATE(),GETDATE(),'ACTIVE')";
+                sql.Parameters.Add(new SqlParameter("@DICT_SYSTEM", "SALEFC"));
+                sql.Parameters.Add(new SqlParameter("@DICT_TYPE", "CUST_MODEL"));
+                sql.Parameters.Add(new SqlParameter("@CODE", obj.Code));
+                sql.Parameters.Add(new SqlParameter("@REF_CODE", obj.RefCode));
+                int insert = _dbSCM.ExecuteNonQuery(sql);
+                if (insert > 0)
+                {
+                    status = true;
+                }
+                else
+                {
+                    status = false;
+                    message = "ไม่สามารถเพิ่มได้ ติดต่อ เบียร์ IT (250)";
+                }
+            }
+            else
+            {
+                status = false;
+                message = $"มี model นี้อยู่แล้วที่ Customer {obj.Code}";
+            }
+
+            return Ok(new
+            {
+                status = status,
+                message = message
+            });
+        }
+
+        [HttpPost]
+        [Route("/saleforecase/customersetting/delmodelofcustomer")]
+        public IActionResult DelModelOfCustomer([FromBody] ParamDeleteModelOfCustomer param)
+        {
+            string DictID = param.dictId;
+            string CustShortName = param.custShortName;
+            if (DictID != "" && CustShortName != "")
+            {
+                SqlCommand sqlGet = new SqlCommand();
+                sqlGet.CommandText = $@"SELECT * FROM [dbSCM].[dbo].[DictMstr] WHERE DICT_ID = '{DictID}'";
+                DataTable dtCheck = _dbSCM.Query(sqlGet);
+                if (dtCheck.Rows.Count > 0)
+                {
+                    string Model = dtCheck.Rows[0]["REF_CODE"].ToString();
+                    SqlCommand sql = new SqlCommand();
+                    sql.CommandText = $@"DELETE FROM [dbSCM].[dbo].[DictMstr] WHERE DICT_ID = '{DictID}'";
+                    int delete = _dbSCM.ExecuteNonQuery(sql);
+                    if (delete > 0)
+                    {
+                        SqlCommand sqlPalletUsedByModel = new SqlCommand();
+                        sqlPalletUsedByModel.CommandText = $@"DELETE FROM [dbSCM].[dbo].[DictMstr] WHERE DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_PL' AND CODE = '{CustShortName}' AND REF_CODE = '{Model}'";
+                        int deletePallet = _dbSCM.ExecuteNonCommand(sqlPalletUsedByModel);
+                        return Ok(new
+                        {
+                            status = deletePallet > 0 ? true : false,
+                            message = "ไม่สามารถลบได้ ติดต่อ เบียร์ IT (250)"
+                        });
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            status = delete > 0 ? true : false,
+                            message = "ไม่สามารถลบได้ ติดต่อ เบียร์ IT (250)"
+                        });
+                    }
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        message = "ไม่สามารถลบได้ ติดต่อ เบียร์ IT (250)"
+                    });
+                }
+            }
+            else
+            {
+                return Ok(new
+                {
+                    status = false,
+                    message = "ไม่สามารถลบได้ ติดต่อ เบียร์ IT (250)"
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("/saleforecase/refresh/sebango/{year}")]
+        public IActionResult refreshSebango(string year)
+        {
+            List<WMS_MDW27_MODEL_MASTER> rMDW27 = new List<WMS_MDW27_MODEL_MASTER>();
+            SqlCommand sql = new SqlCommand();
+            sql.CommandText = @" SELECT   [MODEL],[SEBANGO]  FROM [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER]  group by  [MODEL]  ,[SEBANGO] ";
+            DataTable dt = _dbSCM.Query(sql);
+            foreach (DataRow dr in dt.Rows)
+            {
+                WMS_MDW27_MODEL_MASTER oDict = new WMS_MDW27_MODEL_MASTER();
+                oDict.model = dr["MODEL"].ToString();
+                oDict.sebango = dr["SEBANGO"].ToString();
+                rMDW27.Add(oDict);
+            }
+
+            string[] ver = service.GetVersion(year);
+            string rev = ver[1];
+            string lrev = ver[2];
+            List<AlSaleForecaseMonth> rSaleModelNotNumberic = new List<AlSaleForecaseMonth>();
+            List<AlSaleForecaseMonth> rSaleDontHaveInSaleNew = new List<AlSaleForecaseMonth>();
+            int logUpdate = 0;
+            if (ver[0] == "1" && rev != lrev && lrev == "999")
+            {
+                List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev && (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)).ToList();
+                foreach (AlSaleForecaseMonth oSale in rSaleCurrent)
+                {
+                    WMS_MDW27_MODEL_MASTER oMDW27 = rMDW27.FirstOrDefault(x => x.model == oSale.ModelName);
+                    if (oMDW27 != null && oMDW27.sebango != "" && oMDW27.sebango != oSale.Sebango)
+                    {
+                        oSale.Sebango = int.Parse(oMDW27.sebango).ToString("D4");
+                        _contextDBSCM.AlSaleForecaseMonths.Update(oSale);
+                    }
+                }
+                int update = _contextDBSCM.SaveChanges();
+            }
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("/GetPalletOfCustomer/{CustCode}")]
+        public IActionResult GetPalletOfCustomer(string CustCode)
+        {
+            SqlCommand sql = new SqlCommand();
+            sql.CommandText = $@"  SELECT PL.MODEL,PL.PLTYPE, 
+  ISNULL((SELECT DICT_STATUS FROM [dbSCM].[dbo].[DictMstr]  
+  WHERE DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_PL' AND CODE = '{CustCode}' AND REF_CODE = PL.MODEL AND  REF1 = PL.PLTYPE),'INACTIVE')   AS ACTIVE
+  FROM [dbSCM].[dbo].[DictMstr] M
+  LEFT JOIN [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER] PL
+  ON PL.MODEL = M.REF_CODE
+  LEFT JOIN [dbSCM].[dbo].[DictMstr] C
+  ON C.CODE = PL.PLTYPE
+  WHERE M.DICT_SYSTEM = 'SALEFC' AND M.CODE = '{CustCode}' AND M.DICT_STATUS = 'ACTIVE' AND M.DICT_TYPE = 'CUST_MODEL'
+  GROUP BY  PL.MODEL,PL.PLTYPE,C.CODE ";
+            DataTable dt = _dbSCM.Query(sql);
+            return Ok(JsonConvert.SerializeObject(dt));
+        }
+
+        [HttpGet]
+        [Route("/GetCustomers")]
+        public IActionResult GetCustomerALPHA()
+        {
+            SqlCommand sql = new SqlCommand();
+            sql.CommandText = @"SELECT * FROM [dbSCM].[dbo].[VDMstr] ORDER BY VenderShortName asc";
+            DataTable dt = _dbSCM.Query(sql);
+            return Ok(JsonConvert.SerializeObject(dt));
+        }
+
+        [HttpPost]
+        [Route("/UpdatePalletOfCustomer")]
+        public IActionResult UpdatePalletOfCustomer([FromBody] ParamUpdatePalletOfCustomer param)
+        {
+            bool action = false;
+            string custShortName = param.CUSTOMER_SHORT_NAME;
+            string pallet = param.PLTYPE;
+            string active = param.ACTIVE;
+            string model = param.MODEL;
+            SqlCommand sqlCheck = new SqlCommand();
+            sqlCheck.CommandText = $@"SELECT * FROM  [dbo].[DictMstr] WHERE DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_PL' AND CODE = '{custShortName}' AND REF_CODE = '{model}' AND REF1 = '{pallet}'";
+            DataTable dtCheck = _dbSCM.Query(sqlCheck);
+            if (dtCheck.Rows.Count > 0)
+            {
+                try
+                {
+                    string DictID = dtCheck.Rows[0]["DICT_ID"].ToString();
+                    if (DictID != "")
+                    {
+                        SqlCommand sqlUpdate = new SqlCommand();
+                        sqlUpdate.CommandText = $@"UPDATE [dbo].[DictMstr] SET DICT_STATUS = '{active}' WHERE DICT_ID = '{DictID}'";
+                        int update = _dbSCM.ExecuteNonCommand(sqlUpdate);
+                        if (update > 0)
+                        {
+                            action = true;
+                        }
+                    }
+                }
+                catch
+                {
+                    action = false;
+                }
+            }
+            else
+            {
+                SqlCommand sqlInsert = new SqlCommand();
+                sqlInsert.CommandText = $@"INSERT INTO [dbo].[DictMstr] ([DICT_SYSTEM],[DICT_TYPE],[CODE],[DESCRIPTION],[REF_CODE],[REF1],[CREATE_DATE],[UPDATE_BY],[UPDATE_DATE],[DICT_STATUS]) VALUES  ('SALEFC','CUST_PL','{custShortName}','','{model}','{pallet}',GETDATE(),'SYSTEM' ,GETDATE(),'ACTIVE')";
+                int insert = _dbSCM.ExecuteNonCommand(sqlInsert);
+                if (insert > 0)
+                {
+                    action = true;
+                }
+            }
+            return Ok(new
+            {
+                status = action
+            });
+        }
+    }
 }
