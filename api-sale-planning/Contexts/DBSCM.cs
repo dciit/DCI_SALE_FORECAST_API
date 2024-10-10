@@ -26,6 +26,7 @@ namespace api_sale_planning.Contexts
         public virtual DbSet<EkbWipPartStock> EkbWipPartStocks { get; set; } = null!;
         public virtual DbSet<PnCompressor> PnCompressors { get; set; } = null!;
         public virtual DbSet<UkeCurpln> UkeCurplns { get; set; } = null!;
+        public virtual DbSet<Vdmstr> Vdmstrs { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -445,7 +446,7 @@ namespace api_sale_planning.Contexts
                     .HasColumnName("DICT_SYSTEM");
 
                 entity.Property(e => e.DictType)
-                    .HasMaxLength(20)
+                    .HasMaxLength(50)
                     .HasColumnName("DICT_TYPE");
 
                 entity.Property(e => e.Note)
@@ -807,6 +808,43 @@ namespace api_sale_planning.Contexts
                 entity.Property(e => e.YmQty)
                     .HasColumnType("decimal(18, 2)")
                     .HasColumnName("YM_QTY");
+            });
+
+            modelBuilder.Entity<Vdmstr>(entity =>
+            {
+                entity.HasKey(e => e.VenderCode);
+
+                entity.ToTable("VDMstr");
+
+                entity.Property(e => e.VenderCode).HasMaxLength(50);
+
+                entity.Property(e => e.CreateBy).HasMaxLength(50);
+
+                entity.Property(e => e.CreateDt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("CreateDT")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.UpdateBy).HasMaxLength(50);
+
+                entity.Property(e => e.UpdateDt)
+                    .HasColumnType("datetime")
+                    .HasColumnName("UpdateDT")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.VenderActive)
+                    .HasMaxLength(50)
+                    .HasDefaultValueSql("(N'INACTIVE')");
+
+                entity.Property(e => e.VenderAddress).HasMaxLength(250);
+
+                entity.Property(e => e.VenderName).HasMaxLength(50);
+
+                entity.Property(e => e.VenderNation).HasMaxLength(50);
+
+                entity.Property(e => e.VenderShortName).HasMaxLength(50);
+
+                entity.Property(e => e.VenderTel).HasMaxLength(50);
             });
 
             OnModelCreatingPartial(modelBuilder);

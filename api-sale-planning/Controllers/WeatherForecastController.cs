@@ -576,62 +576,62 @@ namespace api_sale_planning.Controllers
             });
         }
 
-        [HttpPost]
-        [Route("/distribution/sale")]
-        public IActionResult DistributionSale([FromBody] MParam param)
-        {
-            string empcode = param.empcode;
-            string ym = param.ym;
-            MGetRevAndLrev oGetRevAndLrev = GetRevAndLrev(ym);
-            int RevCurrent = oGetRevAndLrev.rev;
-            int LrevCurrent = oGetRevAndLrev.lrev;
-            string message = "";
-            int count = 0;
-            int countUpdate = 0;
-            bool result = false;
-            if (oGetRevAndLrev != null && ym != "")
-            {
-                SqlCommand sql = new SqlCommand();
-                sql.CommandText = @"SELECT *  FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE YM = '" + ym + "' AND REV = '" + RevCurrent.ToString() + "' AND LREV = '" + LrevCurrent.ToString() + "'";
-                DataTable dtSaleforecase = _dbSCM.Query(sql);
-                count = dtSaleforecase.Rows.Count;
-                foreach (DataRow dr in dtSaleforecase.Rows)
-                {
-                    try
-                    {
-                        string ID = dr["ID"].ToString();
-                        SqlCommand sqlUpdate = new SqlCommand();
-                        sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "' WHERE ID = '" + ID + "'";
-                        int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
-                        if (update > 0)
-                        {
-                            countUpdate++;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        message = e.Message;
-                    }
-                }
-                if (count == countUpdate)
-                {
-                    result = true;
-                }
-                return Ok(new
-                {
-                    status = result,
-                    msg = message,
-                });
-            }
-            else
-            {
-                return Ok(new
-                {
-                    status = false,
-                    error = $"ไม่พบข้อมูล {ym}"
-                });
-            }
-        }
+        //[HttpPost]
+        //[Route("/distribution/sale")]
+        //public IActionResult DistributionSale([FromBody] MParam param)
+        //{
+        //    string empcode = param.empcode;
+        //    string ym = param.ym;
+        //    MGetRevAndLrev oGetRevAndLrev = GetRevAndLrev(ym);
+        //    int RevCurrent = oGetRevAndLrev.rev;
+        //    int LrevCurrent = oGetRevAndLrev.lrev;
+        //    string message = "";
+        //    int count = 0;
+        //    int countUpdate = 0;
+        //    bool result = false;
+        //    if (oGetRevAndLrev != null && ym != "")
+        //    {
+        //        SqlCommand sql = new SqlCommand();
+        //        sql.CommandText = @"SELECT *  FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE YM = '" + ym + "' AND REV = '" + RevCurrent.ToString() + "' AND LREV = '" + LrevCurrent.ToString() + "'";
+        //        DataTable dtSaleforecase = _dbSCM.Query(sql);
+        //        count = dtSaleforecase.Rows.Count;
+        //        foreach (DataRow dr in dtSaleforecase.Rows)
+        //        {
+        //            try
+        //            {
+        //                string ID = dr["ID"].ToString();
+        //                SqlCommand sqlUpdate = new SqlCommand();
+        //                sqlUpdate.CommandText = @"UPDATE [dbo].[AL_SaleForecaseMonth] SET [LREV] = 999,[CreateBy] = '" + empcode + "' WHERE ID = '" + ID + "'";
+        //                int update = _dbSCM.ExecuteNonQuery(sqlUpdate);
+        //                if (update > 0)
+        //                {
+        //                    countUpdate++;
+        //                }
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                message = e.Message;
+        //            }
+        //        }
+        //        if (count == countUpdate)
+        //        {
+        //            result = true;
+        //        }
+        //        return Ok(new
+        //        {
+        //            status = result,
+        //            msg = message,
+        //        });
+        //    }
+        //    else
+        //    {
+        //        return Ok(new
+        //        {
+        //            status = false,
+        //            error = $"ไม่พบข้อมูล {ym}"
+        //        });
+        //    }
+        //}
 
         [HttpPost]
         [Route("/status/list/sale")]
@@ -937,7 +937,7 @@ namespace api_sale_planning.Controllers
                 {
                     List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev && (x.D01 > 0 || x.D02 > 0 || x.D03 > 0 || x.D04 > 0 || x.D05 > 0 || x.D06 > 0 || x.D07 > 0 || x.D08 > 0 || x.D09 > 0 || x.D10 > 0 || x.D11 > 0 || x.D12 > 0 || x.D13 > 0 || x.D14 > 0 || x.D15 > 0 || x.D16 > 0 || x.D17 > 0 || x.D18 > 0 || x.D19 > 0 || x.D20 > 0 || x.D21 > 0 || x.D22 > 0 || x.D23 > 0 || x.D24 > 0 || x.D25 > 0 || x.D26 > 0 || x.D27 > 0 || x.D28 > 0 || x.D29 > 0 || x.D30 > 0 || x.D31 > 0)).ToList();
                     rev = (int.Parse(rev) + 1).ToString();
-                    List<AlSaleForecaseMonth> rSaleNow = service.GetSaleForecase(year, empcode, rev, rev);
+                    List<AlSaleForecaseMonth> rSaleNow = service.InitNewRowSaleForecase(year, empcode, rev, rev);
                     _contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleNow);
                     int insert = _contextDBSCM.SaveChanges();
                     if (insert > 0)
@@ -1064,6 +1064,26 @@ namespace api_sale_planning.Controllers
                 if (ver[0] == "1" && rev == lrev)
                 {
                     List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev).ToList();
+                    //                  var EfGetID = _contextDBSCM.AlSaleForecaseMonths.FromSqlRaw($@"SELECT * FROM [dbSCM].[dbo].[AL_SaleForecaseMonth]
+                    //WHERE YM LIKE '{year}%' AND (D01 != 0 OR D02 != 0 OR D03 != 0 OR D04 != 0 OR D05 != 0 OR D06 != 0 OR D07 != 0 OR D08 != 0 OR D09 != 0 OR D10 != 0 OR D11 != 0 OR D12 != 0 OR D13 != 0 OR D14 != 0 OR D15 != 0 OR D16 != 0 OR D17 != 0 OR D18 != 0 OR D19 != 0 OR D20 != 0 OR D21 != 0 OR D22 != 0 OR D23 != 0 OR D24 != 0 OR D25 != 0 OR D26 != 0 OR D27 != 0 OR D28 != 0 OR D29 != 0 OR D30 != 0  OR D31 != 0)").ToList();
+                    //                  int RESDel = 0;
+                    //                  string JoinID = string.Join("','", EfGetID.Select(x => x.Id).ToList());
+                    //                  string CondNotInID = JoinID.Length > 0 ? $@" AND ID NOT IN ('{JoinID}')" : "";
+
+                    //                  SqlCommand STRDel = new SqlCommand();
+                    //                  STRDel.CommandText = $@"DELETE FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE YM LIKE '{year}%' AND ID NOT IN ('{JoinID}')";
+                    //                  RESDel = _dbSCM.ExecuteNonCommand(STRDel);
+
+                    //                  SqlCommand STRUpdateDistribute = new SqlCommand();
+                    //                  STRUpdateDistribute.CommandText = $@"UPDATE  [dbSCM].[dbo].[AL_SaleForecaseMonth] SET LREV = '999',UpdateDate = '{DateTime.Now}' WHERE YM LIKE '{year}%'";
+                    //                  int RESDis = _dbSCM.ExecuteNonCommand(STRUpdateDistribute);
+                    //                  return Ok(new
+                    //                  {
+                    //                      status = RESDis,
+                    //                      message = RESDis == 0 ? "ไม่สามารถเปลี่ยนแปลงเวอร์ชั่นได้ ติดต่อ IT" : ""
+                    //                  });
+
+
                     foreach (AlSaleForecaseMonth oSale in rSaleCurrent)
                     {
                         if (oSale.D01 > 0 || oSale.D02 > 0 || oSale.D03 > 0 || oSale.D04 > 0 || oSale.D05 > 0 || oSale.D06 > 0 || oSale.D07 > 0 || oSale.D08 > 0 || oSale.D09 > 0 || oSale.D10 > 0 || oSale.D11 > 0 || oSale.D12 > 0 || oSale.D13 > 0 || oSale.D14 > 0 || oSale.D15 > 0 || oSale.D16 > 0 || oSale.D17 > 0 || oSale.D18 > 0 || oSale.D19 > 0 || oSale.D20 > 0 || oSale.D21 > 0 || oSale.D22 > 0 || oSale.D23 > 0 || oSale.D24 > 0 || oSale.D25 > 0 || oSale.D26 > 0 || oSale.D27 > 0 || oSale.D28 > 0 || oSale.D29 > 0 || oSale.D30 > 0 || oSale.D31 > 0)
@@ -1079,12 +1099,23 @@ namespace api_sale_planning.Controllers
                             remove++;
                         }
                     }
-                    int update = _contextDBSCM.SaveChanges();
-                    return Ok(new
+                    if (remove == rSaleCurrent.Count && rSaleCurrent.Count != 0)
                     {
-                        status = update,
-                        message = "ไม่สามารถเปลี่ยนแปลงเวอร์ชั่นได้ ติดต่อ IT"
-                    });
+                        return Ok(new
+                        {
+                            status = 0,
+                            message = $"ไม่พบข้อมูลที่มีแผนการขายในปี : {year}"
+                        });
+                    }
+                    else
+                    {
+                        int update = _contextDBSCM.SaveChanges();
+                        return Ok(new
+                        {
+                            status = update,
+                            message = "ไม่สามารถเปลี่ยนแปลงเวอร์ชั่นได้ ติดต่อ IT"
+                        });
+                    }
                 }
                 else
                 {
@@ -1122,14 +1153,14 @@ namespace api_sale_planning.Controllers
             if (haveData == "0") // ไม่มีข้อมูลปีนั้นๆ ใน table
             {
                 // สร้างข้อมูลใหม่
-                rSaleForecase = service.GetSaleForecase(yyyy, empcode);
+                rSaleForecase = service.InitNewRowSaleForecase(yyyy, empcode);
                 _contextDBSCM.AlSaleForecaseMonths.AddRange(rSaleForecase);
                 int insert = _contextDBSCM.SaveChanges();
             }
             else
             {
-                //rSaleForecase = _contextDBSCM.AlSaleForecaseMonthDevs.Where(x => x.Ym.EndsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).Select(x => new MDataSaleForecase() { ym = x.Ym, modelCode = x.ModelCode, modelName = x.ModelName, diameter = x.Diameter, pltype = x.Pltype, d01 = x.D01, d02 = x.D02, d03 = x.D03, d04 = x.D04, d05 = x.D05, d06 = x.D06, d07 = x.D07, d08 = x.D08, d09 = x.D09, d10 = x.D10, d11 = x.D11, d12 = x.D12, d13 = x.D13, d14 = x.D14, d15 = x.D15, d16 = x.D16, d17 = x.D17, d18 = x.D18, d19 = x.D19, d20 = x.D20, d21 = x.D21, d22 = x.D22, d23 = x.D23, d24 = x.D24, d25 = x.D25, d26 = x.D26, d27 = x.D27, d28 = x.D28, d29 = x.D29, d30 = x.D30, d31 = x.D31 }).OrderBy(x => x.ym).ToList();
                 rSaleForecase = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(yyyy) && x.Rev == rev && x.Lrev == lrev).OrderBy(x => x.Customer).ThenBy(x => x.ModelName).ThenBy(x => x.Diameter).ToList();
+
             }
             return Ok(new
             {
@@ -1155,7 +1186,12 @@ namespace api_sale_planning.Controllers
             }
             else if (column == "CUSTOMER")
             {
-                rChoose = _contextDBSCM.AlCustomers.Select(x => new MChoose() { key = x.CustomerNameShort, value = x.CustomerNameShort }).OrderBy(x => x.key).ToList();
+                //SqlCommand sql = new SqlCommand();
+                //sql.CommandText = @"SELECT * FROM [dbSCM].[dbo].[VDMstr] ORDER BY VenderShortName asc";
+                //DataTable dt = _dbSCM.Query(sql);
+                //rChoose = _contextDBSCM.vdms
+                //rChoose = _contextDBSCM.AlCustomers.Select(x => new MChoose() { key = x.CustomerNameShort, value = x.CustomerNameShort }).OrderBy(x => x.key).ToList();
+                rChoose = _contextDBSCM.Vdmstrs.Select(x => new MChoose() { key = x.VenderShortName, value = x.VenderShortName }).OrderBy(x => x.key).ToList();
             }
             else if (column == "MODEL NAME")
             {
@@ -1433,7 +1469,7 @@ namespace api_sale_planning.Controllers
                         int deletePallet = _dbSCM.ExecuteNonCommand(sqlPalletUsedByModel);
                         return Ok(new
                         {
-                            status = deletePallet > 0 ? true : false,
+                            status = delete > 0 ? true : false,
                             message = "ไม่สามารถลบได้ ติดต่อ เบียร์ IT (250)"
                         });
                     }
@@ -1511,7 +1547,7 @@ namespace api_sale_planning.Controllers
             SqlCommand sql = new SqlCommand();
             sql.CommandText = $@"  SELECT PL.MODEL,PL.PLTYPE, 
   ISNULL((SELECT DICT_STATUS FROM [dbSCM].[dbo].[DictMstr]  
-  WHERE DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_PL' AND CODE = '{CustCode}' AND REF_CODE = PL.MODEL AND  REF1 = PL.PLTYPE),'INACTIVE')   AS ACTIVE
+  WHERE DICT_SYSTEM = 'SALEFC' AND DICT_TYPE = 'CUST_PL' AND CODE = '{CustCode}' AND REF_CODE = PL.MODEL AND  REF1 = PL.PLTYPE  GROUP BY DICT_STATUS),'INACTIVE')   AS ACTIVE
   FROM [dbSCM].[dbo].[DictMstr] M
   LEFT JOIN [dbSCM].[dbo].[WMS_MDW27_MODEL_MASTER] PL
   ON PL.MODEL = M.REF_CODE
