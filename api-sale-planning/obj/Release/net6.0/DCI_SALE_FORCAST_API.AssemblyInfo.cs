@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DCI_SALE_FORCAST_API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ec871024b726f35871233cb82349f4af04dd25b")]
 [assembly: System.Reflection.AssemblyProductAttribute("DCI_SALE_FORCAST_API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DCI_SALE_FORCAST_API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -860,8 +860,6 @@ namespace api_sale_planning.Controllers
             });
         }
 
-
-
         [HttpPost]
         [Route("/newrow/sale")]
         public IActionResult NewRowSale([FromBody] MNewrow param)
@@ -1312,8 +1310,6 @@ namespace api_sale_planning.Controllers
             });
         }
 
-
-
         [HttpPost]
         [Route("/saleforecase/diameter")]
         public IActionResult UpdateDiameter()
@@ -1337,7 +1333,6 @@ namespace api_sale_planning.Controllers
             _contextDBSCM.SaveChanges();
             return Ok();
         }
-
 
         [HttpGet]
         [Route("/getCustomerSetting")]
@@ -1617,5 +1612,143 @@ namespace api_sale_planning.Controllers
                 status = action
             });
         }
+
+
+
+        //********************** 10/10/224 API COMPRESSOR HOLD *******************************//
+        [HttpGet]
+        [Route("/GetCompressordata/{itemModel}/{status}")]
+        public IActionResult GetCompressordata(string itemModel,string status)
+        {
+            string src = "";
+            List<MCoreInterface_Parent> Parent_list = new List<MCoreInterface_Parent>();
+
+            if (itemModel == "ALL" && status == "Click")
+            {
+                src = $"AND H.MODEL LIKE '%'";
+            }
+            else if (itemModel == "1YC" && status == "Click")
+            {
+                src = $"AND H.MODEL LIKE '1Y%'";
+            }
+            else if (itemModel == "2YC" && status == "Click")
+            {
+                src = $"AND H.MODEL LIKE '2Y%'";
+            }
+            else if (itemModel == "SCR" && status == "Click")
+            {
+                src = $"AND H.MODEL LIKE 'J%'";
+            }
+            else if(itemModel == "ODM" && status == "Click")
+            {
+                src = $"AND H.MODEL NOT LIKE '1Y%' AND H.MODEL NOT LIKE '2Y%' AND  H.MODEL NOT LIKE 'J%'";
+            }
+            else
+            {           
+               src = $"AND H.MODEL LIKE '{status}%'";                            
+            }
+
+            string model = "";
+
+            OracleCommand cmdModel = new OracleCommand();
+            cmdModel.CommandText = $@"SELECT DISTINCT H.MODEL
+              FROM WMS_WCCTL H
+              LEFT JOIN WMS_WCDTL D ON D.WCORDER = H.WCORDER
+              WHERE UPPER(SUBSTR(REFNO,1,1)) IN('H') AND STATUS = 'Finished' {src}
+              GROUP BY H.MODEL";
+
+            DataTable dtcmdModel = _ALPHAPD.Query(cmdModel);
+
+            foreach (DataRow drModel in dtcmdModel.Rows)
+            {
+                List<MCoreInterface_Child> Child_list = new List<MCoreInterface_Child>();
+                MCoreInterface_Parent Parent = new MCoreInterface_Parent();
+
+                Parent.model = drModel["MODEL"].ToString(); 
+
+                model = drModel["MODEL"].ToString();
+                OracleCommand cmd = new OracleCommand();
+                cmd.CommandText = $@"SELECT UPPER(REFNO) H_REFNO, H.MODEL, H.CHGDATE H_CHGDATE, H.FROMWC H_FROMWC, H.TOWC H_TOWC, COUNT(serial) H_CNT, H.REMARK H_REMARK, '' C_REFNO, '' C_CHGDATE ,'' C_FROMWC ,'' C_TOWC, 0 C_CNT, '' C_REMARK 
+              FROM WMS_WCCTL H
+              LEFT JOIN WMS_WCDTL D ON D.WCORDER = H.WCORDER
+              WHERE UPPER(SUBSTR(REFNO,1,1)) IN('H') AND STATUS = 'Finished' AND H.MODEL LIKE '{model}'
+              GROUP BY UPPER(REFNO), H.MODEL, H.CHGDATE, H.REMARK, H.FROMWC, H.TOWC";
+
+                DataTable dt = _ALPHAPD.Query(cmd);
+
+                OracleCommand cmd2 = new OracleCommand();
+                cmd2.CommandText = $@"SELECT '' H_REFNO, H.MODEL, '' H_CHGDATE, '' H_FROMWC, '' H_TOWC, 0 H_CNT, '' H_REMARK, UPPER(REFNO) C_REFNO,  H.CHGDATE C_CHGDATE, H.FROMWC C_FROMWC, H.TOWC C_TOWC, COUNT(serial) C_CNT, H.REMARK C_REMARK 
+                FROM WMS_WCCTL H
+                LEFT JOIN WMS_WCDTL D ON D.WCORDER = H.WCORDER  
+                WHERE UPPER(SUBSTR(REFNO,1,1)) IN ('C') AND STATUS = 'Finished' AND H.MODEL LIKE '{model}'
+                GROUP BY UPPER(REFNO), H.MODEL, H.CHGDATE, H.REMARK, H.FROMWC, H.TOWC";
+
+                DataTable dt2 = _ALPHAPD.Query(cmd2);
+
+                int i = 0;
+                foreach (DataRow dr in dt2.Rows)
+                {
+                    if (i < dt.Rows.Count)
+                    {
+                        dt.Rows[i]["C_REFNO"] = dr["C_REFNO"].ToString() == "" ? "" : dr["C_REFNO"].ToString();
+                        dt.Rows[i]["C_CHGDATE"] = dr["C_CHGDATE"].ToString();
+                        dt.Rows[i]["C_CNT"] = dr["C_CNT"].ToString();
+                        dt.Rows[i]["C_REMARK"] = dr["C_REMARK"].ToString();
+                    }
+                    else
+                    {
+                        dt.Rows.Add("", model, "", "", "", 0, "", dr["C_REFNO"].ToString(), dr["C_CHGDATE"].ToString(), "", "", dr["C_CNT"], dr["C_REMARK"].ToString());
+                    }
+                    i++;
+                }
+
+                decimal sumStockHold = 0;
+                OracleCommand cmd3 = new OracleCommand();
+                cmd3.CommandText = $@"select model, count(serial) cnt from fh001 where comid='DCI' and nwc in ('HWH','RWQ') and MODEL = '{model}' group by model";
+
+                DataTable dt3 = _ALPHAPD.Query(cmd3);
+
+                foreach (DataRow dr in dt3.Rows)
+                {
+                    sumStockHold = Convert.ToDecimal(dr["cnt"]);
+                }
+
+                decimal _sum_hold = 0, _sum_unhold = 0;
+
+                foreach (DataRow dr in dt.Rows)
+                {
+                    MCoreInterface_Child child = new MCoreInterface_Child();
+
+                    decimal h = (Convert.ToDecimal(dr["H_CNT"].ToString()));
+                    decimal c = (Convert.ToDecimal(dr["C_CNT"].ToString()));
+
+                    _sum_hold += h;
+                    _sum_unhold += c;
+
+                    child.model = dr["MODEL"].ToString();
+                    child.hold = dr["H_REFNO"].ToString();
+                    child.hdate = dr["H_CHGDATE"].ToString();
+                    child.hqty = dr["H_CNT"].ToString();
+                    child.remark1 = dr["H_REMARK"].ToString();
+                    child.unhold = dr["C_REFNO"].ToString();
+                    child.cdate = dr["C_CHGDATE"].ToString();
+                    child.unqty = dr["C_CNT"].ToString();
+                    child.remark2 = dr["C_REMARK"].ToString();
+                    child.sumqtyh = _sum_hold.ToString();
+                    child.sumqtyc = _sum_unhold.ToString();
+                    child.stockhold = sumStockHold.ToString();
+
+                    Child_list.Add(child);
+                    Parent.sumhold = _sum_hold.ToString();
+                    Parent.sumunhold = _sum_unhold.ToString();
+                    Parent.stockhold = sumStockHold.ToString();
+                    Parent.Children = Child_list;
+                }
+
+                Parent_list.Add(Parent);              
+            }
+            return Ok(Parent_list);
+        }
+        //********************* END API COMPRESSOR HOLD *************************************//
     }
 }
