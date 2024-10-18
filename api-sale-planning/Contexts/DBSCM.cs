@@ -22,6 +22,7 @@ namespace api_sale_planning.Contexts
         public virtual DbSet<AlGsdCurpln> AlGsdCurplns { get; set; } = null!;
         public virtual DbSet<AlPalletTypeMapping> AlPalletTypeMappings { get; set; } = null!;
         public virtual DbSet<AlSaleForecaseMonth> AlSaleForecaseMonths { get; set; } = null!;
+        public virtual DbSet<AlSaleForecaseMonthBackup> AlSaleForecaseMonthBackups { get; set; } = null!;
         public virtual DbSet<DictMstr> DictMstrs { get; set; } = null!;
         public virtual DbSet<EkbWipPartStock> EkbWipPartStocks { get; set; } = null!;
         public virtual DbSet<PnCompressor> PnCompressors { get; set; } = null!;
@@ -416,6 +417,109 @@ namespace api_sale_planning.Contexts
                     .HasColumnName("YM");
             });
 
+            modelBuilder.Entity<AlSaleForecaseMonthBackup>(entity =>
+            {
+                entity.ToTable("AL_SaleForecaseMonth_Backup");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.CreateBy).HasMaxLength(50);
+
+                entity.Property(e => e.CreateDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Customer).HasMaxLength(30);
+
+                entity.Property(e => e.D01).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D02).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D03).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D04).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D05).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D06).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D07).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D08).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D09).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D10).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D11).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D12).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D13).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D14).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D15).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D16).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D17).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D18).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D19).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D20).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D21).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D22).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D23).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D24).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D25).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D26).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D27).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D28).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D29).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D30).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.D31).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Diameter).HasMaxLength(20);
+
+                entity.Property(e => e.Lrev)
+                    .HasMaxLength(3)
+                    .HasColumnName("LREV");
+
+                entity.Property(e => e.ModelCode).HasMaxLength(50);
+
+                entity.Property(e => e.ModelName).HasMaxLength(50);
+
+                entity.Property(e => e.Pltype)
+                    .HasMaxLength(30)
+                    .HasColumnName("PLTYPE");
+
+                entity.Property(e => e.Rev)
+                    .HasMaxLength(3)
+                    .HasColumnName("REV");
+
+                entity.Property(e => e.Sebango).HasMaxLength(30);
+
+                entity.Property(e => e.UpdateDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Ym)
+                    .HasMaxLength(6)
+                    .HasColumnName("YM");
+            });
+
             modelBuilder.Entity<DictMstr>(entity =>
             {
                 entity.HasKey(e => e.DictId);
@@ -439,10 +543,11 @@ namespace api_sale_planning.Contexts
 
                 entity.Property(e => e.DictStatus)
                     .HasMaxLength(20)
-                    .HasColumnName("DICT_STATUS");
+                    .HasColumnName("DICT_STATUS")
+                    .HasDefaultValueSql("(N'ACTIVE')");
 
                 entity.Property(e => e.DictSystem)
-                    .HasMaxLength(20)
+                    .HasMaxLength(35)
                     .HasColumnName("DICT_SYSTEM");
 
                 entity.Property(e => e.DictType)

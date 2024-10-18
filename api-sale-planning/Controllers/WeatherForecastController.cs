@@ -944,6 +944,7 @@ namespace api_sale_planning.Controllers
                         foreach (AlSaleForecaseMonth oSaleCurrent in rSaleCurrent)
                         {
                             int i;
+                            oSaleCurrent.ModelCode = oSaleCurrent.ModelCode.Length == 3 ? $"0{oSaleCurrent.ModelCode}" : oSaleCurrent.ModelCode;
                             bool bNum = int.TryParse(oSaleCurrent.ModelCode, out i);
                             AlSaleForecaseMonth oSaleNow = null;
                             if (bNum == false)
@@ -1062,28 +1063,55 @@ namespace api_sale_planning.Controllers
                 if (ver[0] == "1" && rev == lrev)
                 {
                     List<AlSaleForecaseMonth> rSaleCurrent = _contextDBSCM.AlSaleForecaseMonths.Where(x => x.Ym.StartsWith(year) && x.Rev == rev && x.Lrev == lrev).ToList();
-                    //                  var EfGetID = _contextDBSCM.AlSaleForecaseMonths.FromSqlRaw($@"SELECT * FROM [dbSCM].[dbo].[AL_SaleForecaseMonth]
-                    //WHERE YM LIKE '{year}%' AND (D01 != 0 OR D02 != 0 OR D03 != 0 OR D04 != 0 OR D05 != 0 OR D06 != 0 OR D07 != 0 OR D08 != 0 OR D09 != 0 OR D10 != 0 OR D11 != 0 OR D12 != 0 OR D13 != 0 OR D14 != 0 OR D15 != 0 OR D16 != 0 OR D17 != 0 OR D18 != 0 OR D19 != 0 OR D20 != 0 OR D21 != 0 OR D22 != 0 OR D23 != 0 OR D24 != 0 OR D25 != 0 OR D26 != 0 OR D27 != 0 OR D28 != 0 OR D29 != 0 OR D30 != 0  OR D31 != 0)").ToList();
-                    //                  int RESDel = 0;
-                    //                  string JoinID = string.Join("','", EfGetID.Select(x => x.Id).ToList());
-                    //                  string CondNotInID = JoinID.Length > 0 ? $@" AND ID NOT IN ('{JoinID}')" : "";
-
-                    //                  SqlCommand STRDel = new SqlCommand();
-                    //                  STRDel.CommandText = $@"DELETE FROM [dbSCM].[dbo].[AL_SaleForecaseMonth] WHERE YM LIKE '{year}%' AND ID NOT IN ('{JoinID}')";
-                    //                  RESDel = _dbSCM.ExecuteNonCommand(STRDel);
-
-                    //                  SqlCommand STRUpdateDistribute = new SqlCommand();
-                    //                  STRUpdateDistribute.CommandText = $@"UPDATE  [dbSCM].[dbo].[AL_SaleForecaseMonth] SET LREV = '999',UpdateDate = '{DateTime.Now}' WHERE YM LIKE '{year}%'";
-                    //                  int RESDis = _dbSCM.ExecuteNonCommand(STRUpdateDistribute);
-                    //                  return Ok(new
-                    //                  {
-                    //                      status = RESDis,
-                    //                      message = RESDis == 0 ? "ไม่สามารถเปลี่ยนแปลงเวอร์ชั่นได้ ติดต่อ IT" : ""
-                    //                  });
-
-
                     foreach (AlSaleForecaseMonth oSale in rSaleCurrent)
                     {
+                        _contextDBSCM.AlSaleForecaseMonthBackups.Add(new AlSaleForecaseMonthBackup()
+                        {
+                            Ym = oSale.Ym,
+                            Diameter = oSale.Diameter,
+                            ModelCode = oSale.ModelCode,
+                            ModelName = oSale.ModelName,
+                            Sebango = oSale.Sebango,
+                            Pltype = oSale.Pltype,
+                            Customer = oSale.Customer,
+                            D01 = oSale.D01,
+                            D02 = oSale.D02,
+                            D03 = oSale.D03,
+                            D04 = oSale.D04,
+                            D05 = oSale.D05,
+                            D06 = oSale.D06,
+                            D07 = oSale.D07,
+                            D08 = oSale.D08,
+                            D09 = oSale.D09,
+                            D10 = oSale.D10,
+                            D11 = oSale.D11,
+                            D12 = oSale.D12,
+                            D13 = oSale.D13,
+                            D14 = oSale.D14,
+                            D15 = oSale.D15,
+                            D16 = oSale.D16,
+                            D17 = oSale.D17,
+                            D18 = oSale.D18,
+                            D19 = oSale.D19,
+                            D20 = oSale.D20,
+                            D21 = oSale.D21,
+                            D22 = oSale.D22,
+                            D23 = oSale.D23,
+                            D24 = oSale.D24,
+                            D25 = oSale.D25,
+                            D26 = oSale.D26,
+                            D27 = oSale.D27,
+                            D28 = oSale.D28,
+                            D29 = oSale.D29,
+                            D30 = oSale.D30,
+                            D31 = oSale.D31,
+                            Rev = oSale.Rev,
+                            Lrev = oSale.Lrev,
+                            CreateBy = oSale.CreateBy,
+                            CreateDate = oSale.CreateDate,
+                            UpdateDate = oSale.UpdateDate,
+                            Row = oSale.Row
+                        });
                         if (oSale.D01 > 0 || oSale.D02 > 0 || oSale.D03 > 0 || oSale.D04 > 0 || oSale.D05 > 0 || oSale.D06 > 0 || oSale.D07 > 0 || oSale.D08 > 0 || oSale.D09 > 0 || oSale.D10 > 0 || oSale.D11 > 0 || oSale.D12 > 0 || oSale.D13 > 0 || oSale.D14 > 0 || oSale.D15 > 0 || oSale.D16 > 0 || oSale.D17 > 0 || oSale.D18 > 0 || oSale.D19 > 0 || oSale.D20 > 0 || oSale.D21 > 0 || oSale.D22 > 0 || oSale.D23 > 0 || oSale.D24 > 0 || oSale.D25 > 0 || oSale.D26 > 0 || oSale.D27 > 0 || oSale.D28 > 0 || oSale.D29 > 0 || oSale.D30 > 0 || oSale.D31 > 0)
                         {
                             oSale.Lrev = "999";
@@ -1093,6 +1121,7 @@ namespace api_sale_planning.Controllers
                         }
                         else
                         {
+                          
                             _contextDBSCM.AlSaleForecaseMonths.Remove(oSale);
                             remove++;
                         }
@@ -1618,7 +1647,7 @@ namespace api_sale_planning.Controllers
         //********************** 10/10/224 API COMPRESSOR HOLD *******************************//
         [HttpGet]
         [Route("/GetCompressordata/{itemModel}/{status}")]
-        public IActionResult GetCompressordata(string itemModel,string status)
+        public IActionResult GetCompressordata(string itemModel, string status)
         {
             string src = "";
             List<MCoreInterface_Parent> Parent_list = new List<MCoreInterface_Parent>();
@@ -1639,13 +1668,13 @@ namespace api_sale_planning.Controllers
             {
                 src = $"AND H.MODEL LIKE 'J%'";
             }
-            else if(itemModel == "ODM" && status == "Click")
+            else if (itemModel == "ODM" && status == "Click")
             {
                 src = $"AND H.MODEL NOT LIKE '1Y%' AND H.MODEL NOT LIKE '2Y%' AND  H.MODEL NOT LIKE 'J%'";
             }
             else
-            {           
-               src = $"AND H.MODEL LIKE '{status}%'";                            
+            {
+                src = $"AND H.MODEL LIKE '{status}%'";
             }
 
             string model = "";
@@ -1664,7 +1693,7 @@ namespace api_sale_planning.Controllers
                 List<MCoreInterface_Child> Child_list = new List<MCoreInterface_Child>();
                 MCoreInterface_Parent Parent = new MCoreInterface_Parent();
 
-                Parent.model = drModel["MODEL"].ToString(); 
+                Parent.model = drModel["MODEL"].ToString();
 
                 model = drModel["MODEL"].ToString();
                 OracleCommand cmd = new OracleCommand();
@@ -1745,7 +1774,7 @@ namespace api_sale_planning.Controllers
                     Parent.Children = Child_list;
                 }
 
-                Parent_list.Add(Parent);              
+                Parent_list.Add(Parent);
             }
             return Ok(Parent_list);
         }
